@@ -73,6 +73,237 @@ function sameCommunity(origin: string, url: string) {
   return target;
 }
 
+const SOCKET_FILTER_KEYS = new Set([
+  "ids",
+  "authors",
+  "kinds",
+  "since",
+  "until",
+  "limit",
+  "search",
+  "before_id",
+]);
+
+/** Plain NIP-01 filters only; HTTP-only extensions (consistency, presence
+ * synthesis, read-state snapshots) keep the signed HTTP bridge. */
+function socketFilters(body: unknown): Record<string, unknown>[] | undefined {
+  if (!Array.isArray(body) || body.length < 1 || body.length > 10) return;
+  for (const filter of body) {
+    if (!filter || typeof filter !== "object" || Array.isArray(filter)) return;
+    for (const key of Object.keys(filter))
+      if (!SOCKET_FILTER_KEYS.has(key) && !/^#[a-zA-Z]$/.test(key)) return;
+    const kinds = (filter as { kinds?: unknown }).kinds;
+    if (Array.isArray(kinds) && kinds.includes(20001)) return;
+  }
+  return body as Record<string, unknown>[];
+}
+
+type Pending = {
+  frame: (data: unknown[]) => void;
+  fail: (error: Error) => void;
+};
+
+/** One NIP-42-authenticated socket per community carries reads and publishes,
+ * so a session signs one AUTH instead of one NIP-98 event per request. */
+function relaySocket(origin: string) {
+  const url = origin.replace(/^http/, "ws");
+  const pending = new Map<string, Pending>();
+  let ready: Promise<WebSocket> | undefined;
+  let sequence = 0;
+  const failAll = (error: Error) => {
+    for (const entry of pending.values()) entry.fail(error);
+    pending.clear();
+  };
+  const open = () =>
+    new Promise<WebSocket>((resolve, reject) => {
+      const ws = new WebSocket(url);
+      let authId: string | undefined;
+      let settled = false;
+      const timer = setTimeout(
+        () => fail(new Error("Relay login timed out")),
+        15_000,
+      );
+      function fail(error: Error) {
+        clearTimeout(timer);
+        ready = undefined;
+        if (!settled) reject(error);
+        settled = true;
+        failAll(error);
+        ws.close();
+      }
+      ws.onclose = () => fail(new Error("Relay connection closed"));
+      ws.onerror = () => fail(new Error("Relay connection failed"));
+      ws.onmessage = async (message) => {
+        let data: unknown;
+        try {
+          data = JSON.parse(String(message.data));
+        } catch {
+          return;
+        }
+        if (!Array.isArray(data)) return;
+        if (data[0] === "AUTH" && typeof data[1] === "string" && !authId) {
+          try {
+            const auth = await sign({
+              kind: 22242,
+              created_at: now(),
+              content: "",
+              tags: [
+                ["relay", url],
+                ["challenge", data[1]],
+              ],
+            });
+            authId = auth.id;
+            ws.send(JSON.stringify(["AUTH", auth]));
+          } catch (error) {
+            fail(error instanceof Error ? error : new Error(String(error)));
+          }
+          return;
+        }
+        if (data[0] === "OK" && authId && data[1] === authId && !settled) {
+          if (data[2] !== true) return fail(new Error("Relay rejected login"));
+          clearTimeout(timer);
+          settled = true;
+          resolve(ws);
+          return;
+        }
+        if (typeof data[1] === "string") pending.get(data[1])?.frame(data);
+      };
+    });
+
+  async function exchange<T>(
+    id: string,
+    message: unknown[],
+    signal: AbortSignal,
+    frame: (data: unknown[], done: (value: T) => void) => void,
+    cancel?: unknown[],
+  ) {
+    ready ??= open();
+    const ws = await ready;
+    signal.throwIfAborted();
+    return new Promise<T>((resolve, reject) => {
+      const finish = () => {
+        pending.delete(id);
+        signal.removeEventListener("abort", abort);
+      };
+      const abort = () => {
+        finish();
+        if (cancel && ws.readyState === WebSocket.OPEN)
+          ws.send(JSON.stringify(cancel));
+        reject(signal.reason);
+      };
+      signal.addEventListener("abort", abort, { once: true });
+      pending.set(id, {
+        frame: (data) =>
+          frame(data, (value) => {
+            finish();
+            resolve(value);
+          }),
+        fail: (error) => {
+          finish();
+          reject(error);
+        },
+      });
+      ws.send(JSON.stringify(message));
+    });
+  }
+
+  const json = (value: unknown, status = 200) =>
+    new Response(JSON.stringify(value), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  const refusal = (reason: unknown) =>
+    json(
+      {
+        error:
+          typeof reason === "string" ? reason : "Relay refused the request",
+      },
+      typeof reason === "string" && /^(auth-required|restricted)/.test(reason)
+        ? 403
+        : 400,
+    );
+
+  return {
+    query(filters: Record<string, unknown>[], signal: AbortSignal) {
+      const id = `q${++sequence}`;
+      const events: unknown[] = [];
+      return exchange<Response>(
+        id,
+        ["REQ", id, ...filters],
+        signal,
+        (data, done) => {
+          if (data[0] === "EVENT") events.push(data[2]);
+          else if (data[0] === "EOSE") {
+            ready?.then((ws) => ws.send(JSON.stringify(["CLOSE", id])));
+            done(json(events));
+          } else if (data[0] === "CLOSED") done(refusal(data[2]));
+        },
+        ["CLOSE", id],
+      );
+    },
+    count(filters: Record<string, unknown>[], signal: AbortSignal) {
+      const id = `c${++sequence}`;
+      return exchange<Response>(
+        id,
+        ["COUNT", id, ...filters],
+        signal,
+        (data, done) => {
+          if (data[0] === "COUNT")
+            done(json({ count: (data[2] as { count?: unknown })?.count }));
+          else if (data[0] === "CLOSED") done(refusal(data[2]));
+        },
+      );
+    },
+    publish(event: { id: string }, signal: AbortSignal) {
+      return exchange<Response>(
+        event.id,
+        ["EVENT", event],
+        signal,
+        (data, done) => {
+          if (data[0] === "OK")
+            done(
+              json({
+                event_id: data[1],
+                accepted: data[2] === true,
+                message: data[3] ?? "",
+              }),
+            );
+        },
+      );
+    },
+  };
+}
+
+const sockets = new Map<string, ReturnType<typeof relaySocket>>();
+const socketFor = (origin: string) => {
+  let socket = sockets.get(origin);
+  if (!socket) {
+    socket = relaySocket(origin);
+    sockets.set(origin, socket);
+  }
+  return socket;
+};
+
+async function socketRequest(
+  origin: string,
+  path: string,
+  body: unknown,
+  signal: AbortSignal,
+): Promise<Response | undefined> {
+  if (typeof WebSocket === "undefined") return;
+  if (path === "/events") {
+    const event = body as { id?: unknown; sig?: unknown } | null;
+    if (typeof event?.id !== "string" || typeof event.sig !== "string") return;
+    return socketFor(origin).publish(event as { id: string }, signal);
+  }
+  if (path !== "/query" && path !== "/count") return;
+  const filters = socketFilters(body);
+  if (!filters) return;
+  return path === "/query"
+    ? socketFor(origin).query(filters, signal)
+    : socketFor(origin).count(filters, signal);
+}
+
 /** Same contract as `relay_http`: discovery is anonymous, everything else is NIP-98. */
 export async function browserRelayRequest(
   community: string,
@@ -95,6 +326,15 @@ export async function browserRelayRequest(
       redirect: "error",
       signal: bounded,
     });
+  if (body !== undefined) {
+    const viaSocket = await socketRequest(origin, path, body, bounded).catch(
+      (error) => {
+        if (bounded.aborted) throw error;
+        return undefined;
+      },
+    );
+    if (viaSocket) return viaSocket;
+  }
   const method = body === undefined ? "GET" : "POST";
   const text = body === undefined ? undefined : JSON.stringify(body);
   return fetch(url, {
