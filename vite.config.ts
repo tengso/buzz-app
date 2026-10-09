@@ -70,6 +70,9 @@ export default defineConfig(async ({ command, mode }) => {
       "import.meta.env.VITE_BUZZ_BUILDERLAB_URL": JSON.stringify(
         env.BUZZ_BUILDERLAB_URL ?? "",
       ),
+      "import.meta.env.VITE_BUZZ_HOST": JSON.stringify(
+        env.BUZZ_HOST === "browser" ? "browser" : "",
+      ),
       "import.meta.env.VITE_BUZZ_OPEN_RELAY": JSON.stringify(
         openRelay ? defaultOrigin : "",
       ),

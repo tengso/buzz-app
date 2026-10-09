@@ -15,7 +15,7 @@ import {
 import type { Communities, PersonalProfile } from "./service";
 import { canSaveProfile, ProfileFields, profilesEqual } from "./ProfileFields";
 import { communityDestination, relayOrigin } from "./destination";
-import { nativeIdentityEnabled } from "../identity/service";
+import { hostIdentityEnabled } from "../identity/service";
 import { readErrorKind } from "../relay/errors";
 import { createJoinJournal, type PendingJoin } from "./join-journal";
 import styles from "./Communities.module.css";
@@ -55,7 +55,7 @@ export function CommunityDialog({
   const unavailable =
     client.status !== "ready" || (mode === "join" && !client.relayAvailable);
   const [journal] = useState(() =>
-    mode === "join" && nativeIdentityEnabled() && client.viewer
+    mode === "join" && hostIdentityEnabled() && client.viewer
       ? createJoinJournal(client.viewer)
       : undefined,
   );

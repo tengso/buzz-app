@@ -1,4 +1,4 @@
-import { nativeIdentityEnabled } from "../identity/service";
+import { hostIdentityEnabled } from "../identity/service";
 import { nativeCommunityRequest } from "./native-api";
 import { connectCommunityTransport, registerCommunity } from "./connection";
 import { settledRefusal, type SettledRefusal } from "./leave-protocol";
@@ -21,7 +21,7 @@ export async function communityRequest<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<T> {
-  if (nativeIdentityEnabled())
+  if (hostIdentityEnabled())
     return nativeCommunityRequest(id, route, body, signal) as Promise<T>;
   signal = signal
     ? AbortSignal.any([signal, AbortSignal.timeout(25000)])
@@ -61,7 +61,7 @@ export async function inspectProfile(id: string, session?: RelaySession) {
       kinds: [0],
       authors: [transport.viewer],
       limit: 5,
-      ...(nativeIdentityEnabled() ? { consistency: "strong" as const } : {}),
+      ...(hostIdentityEnabled() ? { consistency: "strong" as const } : {}),
     },
   ];
   const events =

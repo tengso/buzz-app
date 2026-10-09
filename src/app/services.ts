@@ -29,6 +29,10 @@ import { createAppearance } from "../shared/theme/service";
 import { createCommunities } from "../features/communities/service";
 import { createInviteIntent } from "../features/communities/invite-intent";
 import { connectNativeTransport } from "../features/relay/native";
+import {
+  browserHostEnabled,
+  createBrowserIdentity,
+} from "../features/identity/browser";
 import { createUpdates } from "../features/updates/updates";
 import { PanelsService } from "../features/panels/service";
 import { Context } from "@deepseek-ai/cordis";
@@ -60,7 +64,11 @@ export function createServices() {
   const settingsCards = new SettingsCardsService(ctx);
   const channelTemplates = new TemplateProvidersService(ctx);
   const identityNames = new IdentityNamesService(ctx, agentControl);
-  const identity = nativeIdentityEnabled() ? createIdentity() : undefined;
+  const identity = nativeIdentityEnabled()
+    ? createIdentity()
+    : browserHostEnabled()
+      ? createBrowserIdentity()
+      : undefined;
   const communities = createCommunities(
     ctx,
     import.meta.env.VITE_BUZZ_LIVE === "1",

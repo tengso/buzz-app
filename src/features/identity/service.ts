@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { browserHostEnabled } from "./browser";
 
 export type IdentitySnapshot =
   | { status: "loading" }
@@ -83,6 +84,9 @@ export function createIdentity() {
   };
 }
 export type Identity = ReturnType<typeof createIdentity>;
+/** Identity and relay I/O owned by this app (native or browser), not the dev broker. */
+export const hostIdentityEnabled = () =>
+  nativeIdentityEnabled() || browserHostEnabled();
 export const nativeIdentityEnabled = () =>
   isTauri() &&
   /Mac|Win|Linux/i.test(navigator.platform) &&

@@ -1,6 +1,6 @@
 import { prepareAttachment } from "../messages/prepare-attachment";
 import { mediaUrl } from "../relay/transport";
-import { nativeIdentityEnabled } from "../identity/service";
+import { hostIdentityEnabled } from "../identity/service";
 import { nativeMediaUrl } from "../relay/native";
 import { connectCommunityTransport } from "../communities/connection";
 import { communityDestination } from "../communities/destination";
@@ -28,7 +28,7 @@ export function avatarPreview(
 /** Relay-hosted media of one community through the host's media adapter. */
 export function communityMedia(community: string) {
   const { id, url } = communityDestination(community);
-  const proxy = nativeIdentityEnabled()
+  const proxy = hostIdentityEnabled()
     ? nativeMediaUrl
     : (target: string) =>
         `/api/relay/${encodeURIComponent(id)}/media?url=${encodeURIComponent(target)}`;
