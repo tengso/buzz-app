@@ -1,4 +1,4 @@
-import { nativeIdentityEnabled } from "../identity/service";
+import { hostIdentityEnabled } from "../identity/service";
 import { connectNativeTransport } from "../relay/native";
 import {
   connectBrokerTransport,
@@ -7,7 +7,7 @@ import {
 import { communityDestination } from "./destination";
 
 export function registerCommunity(id: string, signal?: AbortSignal) {
-  if (nativeIdentityEnabled()) {
+  if (hostIdentityEnabled()) {
     communityDestination(id);
     signal?.throwIfAborted();
     return Promise.resolve();
@@ -16,7 +16,7 @@ export function registerCommunity(id: string, signal?: AbortSignal) {
 }
 
 export function connectCommunityTransport(id: string, signal?: AbortSignal) {
-  return nativeIdentityEnabled()
+  return hostIdentityEnabled()
     ? connectNativeTransport(id, signal)
     : connectBrokerTransport("", signal, id);
 }

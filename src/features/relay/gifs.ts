@@ -1,4 +1,4 @@
-import { nativeIdentityEnabled } from "../identity/service";
+import { hostIdentityEnabled } from "../identity/service";
 import {
   relayKlipySearchPath,
   type RelayGifSearchInfo,
@@ -135,7 +135,7 @@ async function brokerRequest<T>(
   body: unknown | undefined,
   signal?: AbortSignal,
 ): Promise<T> {
-  const response = nativeIdentityEnabled()
+  const response = hostIdentityEnabled()
     ? await nativeRelayRequest(community, route, body, signal)
     : await fetch(`/api/relay/${encodeURIComponent(community)}/${route}`, {
         ...(body === undefined
@@ -180,7 +180,7 @@ export async function relaySupportsKlipy(
   community: string,
   signal?: AbortSignal,
 ) {
-  if (nativeIdentityEnabled())
+  if (hostIdentityEnabled())
     return (await nativeSearchPath(community, signal)) === "/gifs/search";
   const info = await brokerRequest<RelayGifSearchInfo>(
     community,
@@ -197,11 +197,11 @@ export async function fetchKlipyGifs(
   query: string,
   signal?: AbortSignal,
 ): Promise<KlipyGif[]> {
-  const route = nativeIdentityEnabled()
+  const route = hostIdentityEnabled()
     ? await nativeSearchPath(community, signal)
     : "gifs";
   if (!route) throw new Error("GIF search is unavailable");
-  if (nativeIdentityEnabled() && route !== "/gifs/search")
+  if (hostIdentityEnabled() && route !== "/gifs/search")
     throw new Error("GIF search is unavailable");
   try {
     const response = await brokerRequest<KlipyResponse>(
@@ -219,7 +219,7 @@ export async function fetchKlipyGifs(
   } catch (error) {
     // A failed search may mean the relay disabled GIFs since discovery.
     // Caller cancellation says nothing about the shared capability.
-    if (nativeIdentityEnabled() && !signal?.aborted)
+    if (hostIdentityEnabled() && !signal?.aborted)
       nativeSearchPaths.delete(community);
     throw error;
   }

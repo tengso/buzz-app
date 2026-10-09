@@ -63,6 +63,14 @@ import {
 } from "./transport";
 import { nativeSidebar } from "./native-sidebar";
 import { readApiFailure } from "./http-admission";
+import { browserHostEnabled } from "../identity/browser";
+import {
+  browserMediaUrl,
+  browserRelayInfo,
+  browserRelayRequest,
+  browserRelaySigner,
+  connectBrowserTransport,
+} from "./browser";
 
 async function nativeReadInvoke<T>(
   command: string,
@@ -102,6 +110,8 @@ export async function nativeRelayRequest(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<Response> {
+  if (browserHostEnabled())
+    return browserRelayRequest(community, path, body, signal);
   const bounded = AbortSignal.any([
     ...(signal ? [signal] : []),
     AbortSignal.timeout(30_000),
@@ -137,6 +147,7 @@ function nativeResponse(result: {
 /** Relay media through the native `buzz-media` scheme (`src-tauri/src/relay.rs`),
  * which signs each Blossom `get`, including every `Range` request. */
 export function nativeMediaUrl(url: string): string {
+  if (browserHostEnabled()) return browserMediaUrl(url);
   return convertFileSrc(url, "buzz-media");
 }
 
@@ -279,6 +290,7 @@ async function nativeAttachmentUpload(
 }
 
 export function nativeRelaySigner(community: string): Signer {
+  if (browserHostEnabled()) return browserRelaySigner(community);
   const origin = communityDestination(community).url;
   return {
     async getPublicKey() {
@@ -313,6 +325,7 @@ export function nativeRelaySigner(community: string): Signer {
 }
 
 export async function nativeRelayInfo(community: string, signal?: AbortSignal) {
+  if (browserHostEnabled()) return browserRelayInfo(community, signal);
   const response = await nativeRelayRequest(community, "/", undefined, signal);
   if (!response.ok) throw new Error("Community discovery failed");
   const info: unknown = await response.json();
@@ -325,6 +338,7 @@ export async function connectNativeTransport(
   community: string,
   signal?: AbortSignal,
 ): Promise<ReadTransport> {
+  if (browserHostEnabled()) return connectBrowserTransport(community, signal);
   const origin = communityDestination(community).url;
   const info = await nativeRelayInfo(origin, signal);
   const author = info.self;
