@@ -9,6 +9,8 @@ shared data service; the GitHub plugin adds rich reference panels to channels.
 - `src/`: shared browser-compatible application UI and feature logic.
 - [`browser-host/`](browser-host/README.md): Node host for browser development
   and tests; not a production browser backend or code shipped in desktop.
+- [Browser host](docs/browser-host.md): `BUZZ_HOST=browser` static build served on
+  a relay's origin, signing with a NIP-07 extension.
 - `src-tauri/`: native Rust host used by desktop development and releases.
 - `scripts/`: development/build tooling, including Vite developer settings and
   the live setup diagnostic probe.
