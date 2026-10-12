@@ -14,6 +14,7 @@ import {
   useState,
   Fragment,
   type KeyboardEvent,
+  useSyncExternalStore,
 } from "react";
 import { Virtualizer, type VirtualizerHandle } from "virtua";
 import { MessageRow } from "./MessageRow";
@@ -151,6 +152,9 @@ export type ChannelTimelineProps = {
 };
 
 /** Safe to retarget through ordinary props; callers do not own internal remount keys. */
+const noSubscribe = () => () => {};
+const noSnapshot = () => undefined;
+
 export function ChannelTimeline(props: ChannelTimelineProps) {
   return (
     <Timeline
@@ -189,7 +193,23 @@ function Timeline({
   );
   const savedPosition = useRef(initialPosition);
   const restoredAnchor = useRef<ReadingPosition["anchor"]>(undefined);
-  const rows = useMemo(() => membershipRows(window.rows), [window.rows]);
+  const archives = queries.archives as RelaySession["archives"] | undefined;
+  const archiveSnapshot = useSyncExternalStore(
+    archives?.subscribe ?? noSubscribe,
+    archives?.snapshot ?? noSnapshot,
+    archives?.snapshot ?? noSnapshot,
+  );
+  const rows = useMemo(() => {
+    void archiveSnapshot;
+    const hidden = archives?.hidden;
+    return membershipRows(
+      hidden
+        ? window.rows.filter(
+            (row) => !row.membership || !hidden(row.membership.target),
+          )
+        : window.rows,
+    );
+  }, [window.rows, archives, archiveSnapshot]);
   const resolveName = useChannelIdentityNames(queries, channelId);
   const profiles = useRowProfiles(queries.profiles, window.rows);
   const agentPubkeys = useKnownAgentPubkeys(queries, profiles);
