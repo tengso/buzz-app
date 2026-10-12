@@ -147,9 +147,14 @@ function ConnectedApp({ services }: { services: AppServices }) {
         <picture>
           <source
             media="(prefers-reduced-motion: reduce)"
-            srcSet="/buzz-mark.svg"
+            srcSet={`${import.meta.env.BASE_URL}buzz-mark.svg`}
           />
-          <img src="/buzz-loading-mark.svg" alt="Buzz" width="72" height="72" />
+          <img
+            src={`${import.meta.env.BASE_URL}buzz-loading-mark.svg`}
+            alt="Buzz"
+            width="72"
+            height="72"
+          />
         </picture>
       </div>
     );

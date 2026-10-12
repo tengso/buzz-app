@@ -28,6 +28,13 @@ import { validateDetailsTemplate } from "./channel-details-protocol";
 import { validateArchiveRequestTemplate } from "./identity-archive-protocol";
 import { PublishRejected } from "./outbox";
 import { UPLOAD_TIMEOUT_MS } from "./attachments";
+import {
+  relayCredentials,
+  relayFetchUrl,
+  relayMediaServer,
+  relayMediaUrl,
+  relaySocketUrl,
+} from "./browser-proxy";
 
 const now = () => Math.floor(Date.now() / 1000);
 
@@ -119,6 +126,7 @@ type Pending = {
  * so a session signs one AUTH instead of one NIP-98 event per request. */
 function relaySocket(origin: string) {
   const url = origin.replace(/^http/, "ws");
+  const endpoint = relaySocketUrl(origin);
   const pending = new Map<string, Pending>();
   let ready: Promise<WebSocket> | undefined;
   let sequence = 0;
@@ -128,7 +136,7 @@ function relaySocket(origin: string) {
   };
   const open = () =>
     new Promise<WebSocket>((resolve, reject) => {
-      const ws = new WebSocket(url);
+      const ws = new WebSocket(endpoint);
       let authId: string | undefined;
       let settled = false;
       const timer = setTimeout(
@@ -325,16 +333,17 @@ export async function browserRelayRequest(
 ): Promise<Response> {
   const origin = communityDestination(community).url;
   const url = sameCommunity(origin, `${origin}${path}`).href;
+  const endpoint = relayFetchUrl(origin, path);
   const bounded = AbortSignal.any([
     ...(signal ? [signal] : []),
     AbortSignal.timeout(30_000),
   ]);
   if (path === "/" && body === undefined)
-    return fetch(url, {
+    return fetch(endpoint, {
       headers: { Accept: "application/nostr+json" },
       // The page itself is `GET /`; never reuse its cached HTML as NIP-11.
       cache: "no-store",
-      credentials: "omit",
+      credentials: relayCredentials(),
       redirect: "error",
       signal: bounded,
     });
@@ -349,14 +358,14 @@ export async function browserRelayRequest(
   }
   const method = body === undefined ? "GET" : "POST";
   const text = body === undefined ? undefined : JSON.stringify(body);
-  return fetch(url, {
+  return fetch(endpoint, {
     method,
     headers: {
       Authorization: await nip98(url, method, text),
       "Content-Type": "application/json",
     },
     ...(text === undefined ? {} : { body: text }),
-    credentials: "omit",
+    credentials: relayCredentials(),
     redirect: "error",
     signal: bounded,
   });
@@ -390,7 +399,7 @@ async function upload(origin: string, file: File, signal: AbortSignal) {
     ],
   });
   signal.throwIfAborted();
-  return fetch(`${origin}/upload`, {
+  return fetch(relayFetchUrl(origin, "/upload"), {
     method: "PUT",
     headers: {
       "Content-Type": file.type || "application/octet-stream",
@@ -398,14 +407,14 @@ async function upload(origin: string, file: File, signal: AbortSignal) {
       Authorization: `Nostr ${base64(auth)}`,
     },
     body: bytes,
-    credentials: "omit",
+    credentials: relayCredentials(),
     redirect: "error",
     signal,
   });
 }
 
 /** Same-origin `/media/` URLs; `public/buzz-media-sw.js` adds Blossom auth. */
-export const browserMediaUrl = (url: string) => url;
+export const browserMediaUrl = (url: string) => relayMediaUrl(url);
 
 let mediaToken: Promise<{ token: string; expiresAt: number }> | undefined;
 /** One server-scoped Blossom `get` token per hour covers every media read. */
@@ -418,7 +427,7 @@ function mediaAuthorization() {
       content: "Read media",
       tags: [
         ["t", "get"],
-        ["server", location.host],
+        ["server", relayMediaServer()],
         ["expiration", String(expiresAt)],
       ],
     });
@@ -454,7 +463,10 @@ export function startBrowserMedia() {
         () => port.postMessage(null),
       );
     });
-    await navigator.serviceWorker.register("/buzz-media-sw.js", { scope: "/" });
+    const base = new URL(".", location.href);
+    const worker = new URL("buzz-media-sw.js", base);
+    if (relayCredentials() !== "omit") worker.searchParams.set("cookies", "1");
+    await navigator.serviceWorker.register(worker, { scope: base.pathname });
     await navigator.serviceWorker.ready;
   })().catch((error) => {
     console.warn("Buzz media worker unavailable", error);

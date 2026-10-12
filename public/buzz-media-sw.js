@@ -44,11 +44,19 @@ async function authorization() {
   return token.token;
 }
 
+// Behind a path-prefixed proxy the worker's scope is the app's base path, and
+// `?cookies=1` keeps the gateway's login cookie on media reads.
+const mediaPath = new URL("media/", self.registration.scope).pathname;
+const credentials =
+  new URL(self.location.href).searchParams.get("cookies") === "1"
+    ? "same-origin"
+    : "omit";
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (
     url.origin !== self.location.origin ||
-    !url.pathname.startsWith("/media/") ||
+    !url.pathname.startsWith(mediaPath) ||
     !["GET", "HEAD"].includes(event.request.method)
   )
     return;
@@ -60,7 +68,7 @@ self.addEventListener("fetch", (event) => {
       return fetch(url.href, {
         method: event.request.method,
         headers,
-        credentials: "omit",
+        credentials,
         redirect: "error",
       });
     })(),

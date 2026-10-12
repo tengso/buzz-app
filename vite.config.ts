@@ -18,6 +18,12 @@ export default defineConfig(async ({ command, mode }) => {
   // Public routing configuration only; the viewer pin and credentials stay in Node.
   const defaultRelay = env.BUZZ_RELAY_URL?.trim();
   const defaultOrigin = defaultRelay ? relayOrigin(defaultRelay) : "";
+  // Browser build behind a path-prefixed proxy (e.g. a login gateway): assets
+  // load relative to the page and the app opens this relay's community.
+  const proxiedRelay = env.BUZZ_PROXIED_RELAY_URL?.trim();
+  const proxiedOrigin = proxiedRelay ? relayOrigin(proxiedRelay) : "";
+  if (proxiedOrigin && env.BUZZ_HOST !== "browser")
+    throw new Error("BUZZ_PROXIED_RELAY_URL requires BUZZ_HOST=browser.");
   // Opt-in seed: a viewer with no saved client record on this dev origin starts
   // in the default relay's community. The legacy alias is presence-only; an
   // explicit dev setting wins (only "1" enables it). Builds never see it.
@@ -74,9 +80,11 @@ export default defineConfig(async ({ command, mode }) => {
         env.BUZZ_HOST === "browser" ? "browser" : "",
       ),
       "import.meta.env.VITE_BUZZ_OPEN_RELAY": JSON.stringify(
-        openRelay ? defaultOrigin : "",
+        proxiedOrigin || (openRelay ? defaultOrigin : ""),
       ),
+      "import.meta.env.VITE_BUZZ_PROXIED_RELAY": JSON.stringify(proxiedOrigin),
     },
+    ...(proxiedOrigin ? { base: "./" } : {}),
     clearScreen: false,
     server: {
       // Derived from this checkout's path, exactly as `just desktop` does, so

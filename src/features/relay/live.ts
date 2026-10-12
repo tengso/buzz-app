@@ -13,6 +13,7 @@ import {
 import type { EventTemplate, VerifiedEvent } from "nostr-tools";
 import { eventDto } from "./events.ts";
 import { EMOJI_SET } from "./emoji.ts";
+import { relaySocketUrl } from "./browser-proxy";
 
 export const LIVE_CHANNEL_CAPACITY = 1022;
 export const LIVE_BATCH_SIZE = 10; // Relay's per-REQ filter cap; replay stays per channel.
@@ -208,7 +209,8 @@ export function subscribeRelayTraffic(
   sign: (event: EventTemplate) => Promise<VerifiedEvent>,
   viewer: string,
   callbacks: LiveCallbacks,
-  socketFactory: (url: string) => WebSocket = (url) => new WebSocket(url),
+  socketFactory: (url: string) => WebSocket = (url) =>
+    new WebSocket(relaySocketUrl(url)),
   admission: LiveAdmission = createLiveAdmission(),
   setupConcurrency = SETUP_CONCURRENCY,
 ): LiveSubscription {
