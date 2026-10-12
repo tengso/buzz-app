@@ -8,6 +8,7 @@ import {
   localSignEvent,
   localViewer,
   lockLocalKey,
+  resumeLocalKey,
   saveLocalKey,
   storedLocalKey,
   unlockLocalKey,
@@ -127,7 +128,7 @@ export function createBrowserIdentity() {
     if (state.status === "ready") return;
     const mode = signerMode();
     if (mode === "local") {
-      const viewer = localViewer();
+      const viewer = localViewer() ?? (await resumeLocalKey());
       update(
         viewer
           ? { status: "ready", viewer }

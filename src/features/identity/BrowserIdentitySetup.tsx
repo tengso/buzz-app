@@ -12,7 +12,7 @@ function preview(nsec: string) {
   }
 }
 
-/** Browser sign-in: a NIP-07 extension, or a NIP-49 key unlocked once per session. */
+/** Browser sign-in: a NIP-07 extension, or a NIP-49 key unlocked once per browser. */
 export function BrowserIdentitySetup({
   identity,
   children,
@@ -128,8 +128,9 @@ export function BrowserIdentitySetup({
             onChange={(event) => setConfirm(event.target.value)}
           />
           <p>
-            Buzz saves only an encrypted copy (NIP-49) in this browser. While
-            unlocked, this page holds your key in memory.
+            Buzz saves an encrypted copy (NIP-49) in this browser and stays
+            unlocked here until you sign out. Use this only on a device you
+            trust.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button
@@ -169,8 +170,8 @@ export function BrowserIdentitySetup({
             </Button>
           </div>
           <p>
-            With your key on this device you unlock once with a passphrase and
-            are not asked to approve each signature.
+            With your key on this device you enter a passphrase once and are not
+            asked to approve each signature.
           </p>
         </>
       )}

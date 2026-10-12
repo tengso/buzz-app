@@ -8,7 +8,9 @@ import {
   localSelfDecrypt,
   localSelfEncrypt,
   localSignEvent,
+  localKeyRemembered,
   lockLocalKey,
+  setDeviceKeyStore,
   saveLocalKey,
   storedLocalKey,
   unlockLocalKey,
@@ -24,9 +26,23 @@ function storage() {
   };
 }
 
+function deviceStore() {
+  let key: CryptoKey | undefined;
+  return {
+    get: async () => key,
+    put: async (next: CryptoKey) => {
+      key = next;
+    },
+    clear: async () => {
+      key = undefined;
+    },
+  };
+}
+
 beforeEach(() => {
   vi.stubGlobal("localStorage", storage());
   vi.stubGlobal("sessionStorage", storage());
+  setDeviceKeyStore(deviceStore());
   forgetLocalKey();
 });
 
@@ -57,6 +73,37 @@ it("stores only an ncryptsec and unlocks with the passphrase", () => {
     }
   forgetLocalKey();
   expect(storedLocalKey()).toBe(false);
+}, 30_000);
+
+it("remembers the unlock for later page loads until lock", async () => {
+  const devices = deviceStore();
+  setDeviceKeyStore(devices);
+  saveLocalKey(nsec, "correct horse");
+  await localKeyRemembered();
+  const hex = Array.from(secret, (b) => b.toString(16).padStart(2, "0")).join(
+    "",
+  );
+  for (const value of (
+    localStorage as unknown as ReturnType<typeof storage>
+  ).values()) {
+    expect(value).not.toContain(nsec);
+    expect(value).not.toContain(hex);
+  }
+  vi.resetModules();
+  const page = await import("../identity/local-key");
+  page.setDeviceKeyStore(devices);
+  expect(await page.resumeLocalKey()).toBe(viewer);
+  expect(
+    page.localSignEvent({ kind: 1, created_at: 1, tags: [], content: "" })
+      .pubkey,
+  ).toBe(viewer);
+  page.lockLocalKey();
+  await page.localKeyRemembered();
+  vi.resetModules();
+  const next = await import("../identity/local-key");
+  next.setDeviceKeyStore(devices);
+  expect(await next.resumeLocalKey()).toBeUndefined();
+  expect(next.storedLocalKey()).toBe(true);
 }, 30_000);
 
 it("rejects short passphrases and invalid keys", () => {

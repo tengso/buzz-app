@@ -45,13 +45,15 @@ The first visit offers two choices; the choice is remembered in this browser.
 - **Use my key on this device.** Paste an `nsec` (Buzz desktop: Settings →
   Profile → Reveal private key); Buzz shows the matching `npub`. Choose a
   passphrase (8+ characters). Only the NIP-49 `ncryptsec` is saved, in
-  `localStorage`. Each new page load asks for the passphrase once; after that all
+  `localStorage`. The passphrase is asked once per browser; after that all
   signing and NIP-44 encryption happen in the page without prompts.
-  - The decrypted key is never written to browser storage, so every reload or
-    new tab asks for the passphrase again.
+  - The unlock lasts across reloads, tabs and browser restarts: the key is kept
+    in `localStorage` encrypted with a non-extractable AES-GCM key held in
+    IndexedDB. That keeps the raw key out of storage files, but any script in
+    the page can still unwrap it. Signing out removes both.
   - Settings → Sign out locks the key; signing out with "remove data" forgets it.
     The unlock screen also has **Forget key on this device**.
-  - Trade-off: while unlocked, the key is in the page's JavaScript memory. Any
+  - Trade-off: while unlocked, the key is usable by the page's JavaScript. Any
     script running in the page (an injection bug, a malicious extension) could
     read it, which an extension's separate process prevents. Serve the app with the
     Content-Security-Policy from the nginx configs below, and prefer this mode on
