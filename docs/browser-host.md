@@ -33,7 +33,10 @@ site, or each one prompts.
 
 ## Deploy
 
-The app must be served on the relay's own HTTPS origin.
+The app must be served on the relay's own origin. That origin is HTTPS for a
+reachable relay. Plain HTTP works only on `127.0.0.1` / `localhost`, for a relay
+reached through an SSH tunnel; see
+[Loopback relay over an SSH tunnel](#loopback-relay-over-an-ssh-tunnel-team-builder).
 
 ### 1. Relay
 
@@ -49,13 +52,13 @@ source bin/activate-hermit   # Node 24 and pnpm
 pnpm install
 BUZZ_HOST=browser \
 BUZZ_RELAY_URL=wss://buzz.example.com \
-BUZZ_BUILD_AUTO_CONNECT_DEFAULT_RELAY=1 \
 pnpm exec vite build --outDir dist-web --emptyOutDir
 sudo mkdir -p /srv/buzz-web && sudo cp -r dist-web/* /srv/buzz-web/
 ```
 
-`BUZZ_BUILD_AUTO_CONNECT_DEFAULT_RELAY=1` adds the relay as the default
-community on first launch.
+`BUZZ_RELAY_URL` is validated at build time. Builds do not add it as a community
+automatically (`BUZZ_BUILD_AUTO_CONNECT_DEFAULT_RELAY` applies to `just web`
+only), so each user adds the community once after signing in.
 
 ### 3. nginx
 
@@ -90,6 +93,50 @@ If the first returns HTML, the app fails with
    of the community.
 2. Open `https://buzz.example.com`. Without an extension the app shows
    "Install a Nostr signer extension (NIP-07), such as Alby or nos2x, then retry."
+3. Click **+** in the community rail, enter `wss://buzz.example.com`, then
+   **Continue**. Enter an invite code if the relay requires one, and publish a
+   profile.
+
+## Loopback relay over an SSH tunnel (team-builder)
+
+[team-builder](https://github.com/tengso/triflection-team-builder) only accepts
+`http://` advertised URLs, so its relay runs with `RELAY_URL=ws://<advertised
+host:port>`. The relay derives the expected NIP-42 `relay` tag (`ws://…`) and NIP-98
+`u` tag (`http://…`) from that URL. The browser host therefore accepts `ws://` and
+`http://` communities, and their `/media/` URLs, when the host is `127.0.0.1`,
+`localhost` or `[::1]`. It signs them with the same scheme. Plain HTTP to any other
+host is rejected.
+
+The browser must open exactly the advertised URL. Example: a relay created with
+`team-builder init --advertised-url http://127.0.0.1:3102 --bind 127.0.0.1 --port 3100 …`:
+
+```text
+workstation browser http://127.0.0.1:3102
+   │ ssh -L 127.0.0.1:3102:127.0.0.1:3180
+   ▼
+server nginx 127.0.0.1:3180   (app + same-origin proxy)
+   ▼
+relay 127.0.0.1:3100          (team-builder --bind/--port)
+```
+
+1. Build on the server with `BUZZ_RELAY_URL=ws://127.0.0.1:3102` (the advertised
+   URL with `ws://`) and copy `dist-web/*` to `/srv/buzz-web/`.
+2. Install [`browser-host.loopback.nginx.conf`](browser-host.loopback.nginx.conf).
+   Set `proxy_pass` to the relay's `--bind:--port`. Keep
+   `proxy_set_header Host $http_host`; `$host` drops the port and the relay
+   rejects the request.
+3. On the workstation, forward the advertised port to nginx, not to the relay:
+   `ssh -N -L 127.0.0.1:3102:127.0.0.1:3180 user@server`. The desktop app keeps
+   working through the same tunnel.
+4. Check from the workstation:
+
+   ```bash
+   curl -s -H 'Accept: application/nostr+json' http://127.0.0.1:3102/ | head -c 200  # relay JSON
+   curl -s http://127.0.0.1:3102/ | head -c 100                                     # <!doctype html>
+   ```
+
+5. Open `http://127.0.0.1:3102` (not `localhost`), then add the community
+   `http://127.0.0.1:3102` with **+**.
 
 ## Limitations
 

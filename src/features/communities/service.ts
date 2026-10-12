@@ -7,6 +7,7 @@ import { provideRelay, type RelayData } from "../relay/service";
 import { connectBrokerTransport, type ReadTransport } from "../relay/transport";
 import { communityDestination, isCommunityAlias } from "./destination";
 import { purgeCommunityDeviceState, type PurgeFailure } from "./device-state";
+import { isSecureOrLoopbackHref } from "../../shared/loopback";
 
 export const PROFILE_ABOUT_MAX_LENGTH = 500;
 export type PersonalProfile = { name: string; picture: string; about?: string };
@@ -210,7 +211,7 @@ export function createCommunities(
                         name: m.name,
                         ...("icon" in m &&
                         typeof m.icon === "string" &&
-                        m.icon.startsWith("https://")
+                        isSecureOrLoopbackHref(m.icon)
                           ? { icon: m.icon }
                           : {}),
                       };

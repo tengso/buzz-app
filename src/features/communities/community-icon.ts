@@ -1,3 +1,4 @@
+import { isSecureOrLoopbackUrl } from "../../shared/loopback";
 import { registerBrokerCommunity } from "../relay/transport";
 import { hostIdentityEnabled } from "../identity/service";
 import { nativeRelayInfo } from "../relay/native";
@@ -10,8 +11,8 @@ export function communityIcon(value: unknown): string | undefined {
       // Parse authority instead of rejecting '@' in legitimate paths or queries.
       const url = new URL(value);
       if (
-        /^https:\/\//i.test(value) &&
-        url.protocol === "https:" &&
+        /^https?:\/\//i.test(value) &&
+        isSecureOrLoopbackUrl(url) &&
         url.hostname &&
         !url.username &&
         !url.password &&

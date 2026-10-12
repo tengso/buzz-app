@@ -222,7 +222,7 @@ export function useConversationTabs({
             ...(threadId && { threadId }),
             relayUrl: scope
               .slice(0, -(viewer.length + 1))
-              .replace(/^https:/, "wss:")
+              .replace(/^http(s?):/, "ws$1:")
               .replace(/^http:/, "ws:"),
           }
         : undefined,

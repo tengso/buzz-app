@@ -1,3 +1,5 @@
+import { isSecureOrLoopbackUrl } from "./loopback";
+
 /** Display-only avatars. No file URLs, SVG data, executable schemes or credentials. */
 export function avatarSource(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
@@ -9,7 +11,7 @@ export function avatarSource(value: unknown): string | undefined {
   if (source.length > 2048) return undefined;
   try {
     const url = new URL(source);
-    if (url.protocol === "https:" && !url.username && !url.password)
+    if (isSecureOrLoopbackUrl(url) && !url.username && !url.password)
       return url.href;
   } catch {
     /* Missing/invalid optional artwork falls back to initials. */

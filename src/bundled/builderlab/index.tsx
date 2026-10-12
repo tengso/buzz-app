@@ -29,7 +29,7 @@ export const apply: PluginModule["apply"] = (ctx) => {
   const agents = createAgentClient(ctx.host, session, () => {
     const selected = ctx.communityReader.snapshot().selected;
     return selected
-      ? communityDestination(selected).url.replace(/^https:/, "wss:")
+      ? communityDestination(selected).url.replace(/^http(s?):/, "ws$1:")
       : undefined;
   });
   const enrollment = createEnrollment(ctx.relay, ctx.communityReader, session);

@@ -11,6 +11,9 @@ it.each([
   ["wss://example.com:8443", "https://example.com:8443"],
   ["https://[2001:db8::1]:8443/", "https://[2001:db8::1]:8443"],
   ["WSS://bücher.example/", "https://xn--bcher-kva.example"],
+  ["ws://127.0.0.1:3102", "http://127.0.0.1:3102"],
+  ["http://LOCALHOST:3100/", "http://localhost:3100"],
+  ["ws://[::1]:3000", "http://[::1]:3000"],
 ])("canonicalizes %s", (input, expected) => {
   expect(relayOrigin(input)).toBe(expected);
   expect(relayOrigin(expected)).toBe(expected);
@@ -22,6 +25,12 @@ it.each([
   "primary",
   "ws://relay.example",
   "http://relay.example",
+  "ws://192.168.1.10:3100",
+  "http://10.0.0.1",
+  "ws://127.0.0.1.evil.example",
+  "http://localhost.evil.example:3100",
+  "http://user@127.0.0.1:3100",
+  "ws://127.0.0.1:3100/path",
   "javascript:alert(1)",
   "file:///tmp/relay",
   "https://user:password@relay.example",

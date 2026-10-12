@@ -10,7 +10,7 @@ import { avatarSource } from "../../shared/avatar-source";
 export function avatarPictureError(value: string): string | undefined {
   if (
     !value ||
-    (value.length <= 2048 && avatarSource(value)?.startsWith("https://"))
+    (value.length <= 2048 && /^https?:\/\//.test(avatarSource(value) ?? ""))
   )
     return undefined;
   return "Use an HTTPS image URL without credentials (up to 2,048 characters), or remove the avatar.";

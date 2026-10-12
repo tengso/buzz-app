@@ -1,3 +1,4 @@
+import { isSecureOrLoopbackUrl } from "../../shared/loopback";
 /** Only the URLs emitted by convertFileSrc(relayMediaUrl, "buzz-media"). */
 export function isNativeMediaSource(source: string): boolean {
   try {
@@ -56,8 +57,7 @@ export function isProxySource(source: string): boolean {
 
 export function safeOpenUrl(value: string): boolean {
   try {
-    const url = new URL(value);
-    return url.protocol === "https:";
+    return isSecureOrLoopbackUrl(new URL(value));
   } catch {
     return false;
   }
