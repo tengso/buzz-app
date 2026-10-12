@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import type { Presence, PresenceStatus } from "./presence";
+import { BRAND_NAME } from "../../shared/brand";
 
 const unknown = "unknown:false";
 function usePresenceState(
@@ -62,7 +63,7 @@ export function PresenceIndicator({
       title={
         presence.limited(pubkey)
           ? "Presence demand limit reached"
-          : "Recent Buzz session status in this community; periodically refreshed"
+          : `Recent ${BRAND_NAME} session status in this community; periodically refreshed`
       }
     >
       {symbol} {label}

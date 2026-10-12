@@ -30,6 +30,7 @@ import {
   type inventoryDecision,
 } from "./inventory-decisions";
 import { type AgentInventoryIdentity, localSetups } from "./inventory-model";
+import { BRAND_NAME } from "../../shared/brand";
 
 /** One complete inventory identity; source selection belongs to the enclosing inventory. */
 export function InventoryIdentityCard({
@@ -268,7 +269,7 @@ export function InventoryIdentityCard({
         >
           {needsSource && (
             <label className="agent-control-field">
-              <span className="sr-only">Old Buzz installation</span>
+              <span className="sr-only">Old {BRAND_NAME} installation</span>
               <select
                 value={source ?? ""}
                 disabled={state.busy || state.status !== "ready"}
@@ -283,8 +284,8 @@ export function InventoryIdentityCard({
                 {row.oldBuzzSources.map((value) => (
                   <option key={value} value={value}>
                     {value === "installed"
-                      ? "Installed Buzz"
-                      : "Development Buzz"}
+                      ? `Installed ${BRAND_NAME}`
+                      : `Development ${BRAND_NAME}`}
                   </option>
                 ))}
               </select>
@@ -375,8 +376,8 @@ export function InventoryIdentityCard({
                 {row.oldBuzzSources
                   .map((source) =>
                     source === "installed"
-                      ? "Installed Buzz"
-                      : "Development Buzz",
+                      ? `Installed ${BRAND_NAME}`
+                      : `Development ${BRAND_NAME}`,
                   )
                   .join(" · ")}
               </p>

@@ -27,6 +27,7 @@ import { MessageEditScope, useMessageEditScope } from "./MessageEditScope";
 import { useAfterMessageMenuClose } from "./MessageActionBar";
 import { lastEditableMessage } from "./useMessageEdit";
 import styles from "./Messages.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 // A channel tab and its thread can coexist, but unread state owns one visit.
 const visits = new WeakMap<
@@ -454,7 +455,7 @@ function DeleteMessageDialog({
   return (
     <AlertDialog
       title="Delete message?"
-      description="This requests removal of this message from Buzz’s relay. People may still have copies. This cannot be undone."
+      description={`This requests removal of this message from ${BRAND_NAME}’s relay. People may still have copies. This cannot be undone.`}
       pending={pending}
       finalFocus={() => (operationId ? (selection.focus?.() ?? true) : true)}
       onClose={close}

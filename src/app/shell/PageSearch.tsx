@@ -33,6 +33,7 @@ import {
 } from "./SearchChoices";
 import { SearchResults } from "./SearchResults";
 import { usageScope } from "../../features/search/usage";
+import { BRAND_NAME } from "../../shared/brand";
 
 export type SearchServices = Pick<
   AppServices,
@@ -95,7 +96,7 @@ export function PageSearch({
     () =>
       services?.shortcuts.registerHost({
         id: SEARCH_ID,
-        title: "Search Buzz",
+        title: `Search ${BRAND_NAME}`,
         binding: SEARCH_BINDING,
         order: HOST_SHORTCUT_ORDER.search,
         allowInEditable: true,
@@ -156,8 +157,8 @@ export function PageSearch({
       <IconButton
         ref={trigger}
         variant="ghost"
-        aria-label="Search Buzz"
-        title={`Search Buzz (${shortcut})`}
+        aria-label={`Search ${BRAND_NAME}`}
+        title={`Search ${BRAND_NAME} (${shortcut})`}
         onClick={() => {
           trigger.current?.focus();
           begin();
@@ -167,7 +168,9 @@ export function PageSearch({
       <Dialog
         open={open}
         onOpenChange={setSearchOpen}
-        title={scopedChannelId ? "Search this conversation" : "Search Buzz"}
+        title={
+          scopedChannelId ? "Search this conversation" : `Search ${BRAND_NAME}`
+        }
         motion="default"
         dismissOnOutsideClick
         closeLabel="Close search"
@@ -266,7 +269,9 @@ function CommunitySearch({
         query={query}
         onQueryChange={onQueryChange}
         input={input}
-        label={scopedChannelId ? "Search this conversation" : "Search Buzz"}
+        label={
+          scopedChannelId ? "Search this conversation" : `Search ${BRAND_NAME}`
+        }
         placeholder={scopedChannelId ? "Search messages…" : undefined}
         scope={
           scopedChannelId

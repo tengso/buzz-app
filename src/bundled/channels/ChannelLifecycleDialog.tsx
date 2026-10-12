@@ -6,6 +6,7 @@ import {
 } from "../../features/relay/channel-lifecycle";
 import type { ChannelLifecycleAction } from "../../features/relay/channel-lifecycle-protocol";
 import { Dialog } from "../../shared/design-system/ui/Dialog";
+import { BRAND_NAME } from "../../shared/brand";
 
 const copy = {
   archive: {
@@ -20,8 +21,7 @@ const copy = {
   },
   delete: {
     title: "Delete channel",
-    detail:
-      "Delete this channel for everyone. You cannot undo this action from Buzz.",
+    detail: `Delete this channel for everyone. You cannot undo this action from ${BRAND_NAME}.`,
   },
   leave: {
     title: "Leave channel",

@@ -16,6 +16,7 @@ import {
   type SoundName,
 } from "../features/notifications/sound";
 import styles from "./NotificationSettings.module.css";
+import { BRAND_NAME } from "../shared/brand";
 
 // Reference row order: direct messages, mentions, thread replies.
 const SOUND_ROWS: readonly NotificationCategory[] = [
@@ -311,7 +312,7 @@ export function NotificationSettings({
         )}
         {active && state.error && (
           <ToastNotice
-            title="Buzz couldn’t send the notification"
+            title={`${BRAND_NAME} couldn’t send the notification`}
             description={state.error}
           />
         )}

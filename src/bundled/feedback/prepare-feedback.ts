@@ -3,6 +3,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { imageType } from "../../features/relay/attachment-limits";
 import { prepareAttachment } from "../../features/messages/prepare-attachment";
 import { cleanPng } from "../../features/messages/image-metadata";
+import { BRAND_NAME } from "../../shared/brand";
 
 /** Only upload supported still images. Relay metadata checks reject unsafe containers. */
 export async function feedbackImage(
@@ -41,7 +42,7 @@ export async function feedbackDiagnostics(now = new Date()): Promise<File> {
   }
   const nav = typeof navigator === "undefined" ? undefined : navigator;
   const content = [
-    "Buzz feedback diagnostics",
+    `${BRAND_NAME} feedback diagnostics`,
     `captured: ${now.toISOString()}`,
     `app version: ${version}`,
     `platform: ${nav?.platform ?? "unknown"}`,

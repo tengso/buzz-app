@@ -16,6 +16,7 @@ import {
 } from "../../shared/design-system/icons";
 import { Button } from "../../shared/design-system/ui/Button";
 import { agentEdit, isGoose, type AgentDraft } from "./agent-edit";
+import { BRAND_NAME } from "../../shared/brand";
 
 const VISIBLE_MODEL_LIMIT = 10;
 
@@ -235,7 +236,7 @@ export function AgentModelPicker({
             : goose
               ? "No models found for this Goose provider. Check its configuration or enter a custom ID."
               : pi
-                ? "No signed-in Pi providers found. Buzz doesn’t use API keys exported in your shell profile. Choose a provider under LLM Provider to add its API key, or enter a custom ID."
+                ? `No signed-in Pi providers found. ${BRAND_NAME} doesn’t use API keys exported in your shell profile. Choose a provider under LLM Provider to add its API key, or enter a custom ID.`
                 : "No models found. Enter a custom ID or check the workspace/filter under Advanced → Model.",
       );
     } catch (error) {
@@ -277,8 +278,7 @@ export function AgentModelPicker({
   const entries = (fresh?.models ?? []).filter(
     (m) => !pi || !draft.provider || m.id.startsWith(`${draft.provider}/`),
   );
-  const piNoModelsMessage =
-    "No Pi models for this provider. Buzz doesn’t use API keys exported in your shell profile. Add this provider’s API key for this agent, then browse models again.";
+  const piNoModelsMessage = `No Pi models for this provider. ${BRAND_NAME} doesn’t use API keys exported in your shell profile. Add this provider’s API key for this agent, then browse models again.`;
   const selectedId =
     pi && draft.provider && draft.model
       ? `${draft.provider}/${draft.model}`
@@ -663,8 +663,8 @@ export function AgentModelPicker({
                       </div>
                       <p className="text-body-sm text-secondary">
                         Credentials are shared within Foundation for this
-                        workspace, not with old Buzz. Disconnect removes this
-                        app’s cache, not your browser session.
+                        workspace, not with old {BRAND_NAME}. Disconnect removes
+                        this app’s cache, not your browser session.
                       </p>
                     </>
                   )}

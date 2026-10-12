@@ -12,6 +12,7 @@ import {
 import type { PluginManager } from "../plugins/manager";
 import type { Catalog, ImportPreview } from "../plugins/types";
 import type { PluginManifest } from "../plugins/api";
+import { BRAND_NAME } from "../shared/brand";
 
 function hostGrants(manifest: PluginManifest): string[] {
   return [
@@ -122,7 +123,7 @@ export function PluginImport({
         <EmptyState
           icon={<FolderOpenIcon />}
           title="Load a plugin"
-          description="Load built plugins containing manifest.json and plugin.js. Buzz doesn’t build source code or run install scripts. Only load code you trust: plugins aren’t sandboxed."
+          description={`Load built plugins containing manifest.json and plugin.js. ${BRAND_NAME} doesn’t build source code or run install scripts. Only load code you trust: plugins aren’t sandboxed.`}
           action={
             <>
               <Button
@@ -179,8 +180,8 @@ export function PluginImport({
             <p className="m-0 text-caption text-muted">
               HTTPS or SSH; GitHub owner/repository also works. SSH uses your
               agent and known hosts. Password prompts and credential helpers are
-              not used. Buzz git repositories in this community sign in with
-              your account.
+              not used. {BRAND_NAME} git repositories in this community sign in
+              with your account.
             </p>
             <div className="justify-self-start">
               <Button

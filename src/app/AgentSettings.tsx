@@ -37,9 +37,9 @@ import type { ReactNode } from "react";
 import { AgentDefaultsCard } from "./AgentDefaultsCard";
 import { ClaudeHarnessSetup } from "./ClaudeHarnessSetup";
 import styles from "./AgentSettings.module.css";
+import { BRAND_NAME } from "../shared/brand";
 
-const acpHint =
-  "Buzz talks to harnesses through the Agent Client Protocol (ACP). Goose ships with Buzz. Pi needs the buzz-pi-acp adapter. Hermes Agent uses its own ACP launcher and sign-in.";
+const acpHint = `${BRAND_NAME} talks to harnesses through the Agent Client Protocol (ACP). Goose ships with ${BRAND_NAME}. Pi needs the buzz-pi-acp adapter. Hermes Agent uses its own ACP launcher and sign-in.`;
 const piCommand = "npm install -g '@earendil-works/pi-coding-agent@>=0.99.0'";
 const adapterCommand =
   "npm install -g --install-links=true 'git+https://github.com/salman1993/buzz-pi-acp.git#72015de'";
@@ -311,7 +311,7 @@ export function AgentSettings({
                             <div className="space-y-3 text-body-sm">
                               <p className="m-0 text-secondary">
                                 {pi?.installSupported && control.installPi
-                                  ? "Click Install. Buzz installs Node.js, Pi, and its ACP adapter for you."
+                                  ? `Click Install. ${BRAND_NAME} installs Node.js, Pi, and its ACP adapter for you.`
                                   : "Use Manual setup on this device, then click Check again."}{" "}
                                 Your existing CLI setup and sign-in are left
                                 untouched.
@@ -503,7 +503,7 @@ export function AgentSettings({
               <h4 className="text-label">Setup</h4>
               <p>
                 Install {presetLabel} with ACP support, then follow the setup
-                guide to connect it to Buzz.
+                guide to connect it to {BRAND_NAME}.
               </p>
               <details>
                 <summary>Terminal setup</summary>

@@ -79,6 +79,12 @@
   mask: url("/buzz-mark.svg") center / contain no-repeat;
   transform: translateX(1px);
 }
+.sidebarBrandLogo {
+  display: block;
+  height: var(--space-5);
+  max-width: calc(var(--space-5) * 5);
+  object-fit: contain;
+}
 .destinations {
   display: flex;
   flex-direction: column;

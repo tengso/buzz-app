@@ -36,6 +36,7 @@ import { PanelCard } from "../features/panels/PanelCard";
 import { communityDestination } from "../features/communities/destination";
 import { profileTarget } from "../features/profiles/target";
 import { setLaunchReady } from "./launch";
+import { BRAND_LOADING, BRAND_NAME } from "../shared/brand";
 
 export function App({ services }: { services: AppServices }) {
   const identity = services.identity;
@@ -142,16 +143,22 @@ function ConnectedApp({ services }: { services: AppServices }) {
   // Keep the parser launch surface through local bootstrap, not network refresh.
   if (!settings && restoring)
     return document.getElementById("buzz-launch") ? null : (
-      <div className="buzz-launch" role="status" aria-label="Opening Buzz">
+      <div
+        className="buzz-launch"
+        role="status"
+        aria-label={`Opening ${BRAND_NAME}`}
+      >
         <LoadingWindowHeader />
         <picture>
-          <source
-            media="(prefers-reduced-motion: reduce)"
-            srcSet={`${import.meta.env.BASE_URL}buzz-mark.svg`}
-          />
+          {!BRAND_LOADING && (
+            <source
+              media="(prefers-reduced-motion: reduce)"
+              srcSet={`${import.meta.env.BASE_URL}buzz-mark.svg`}
+            />
+          )}
           <img
-            src={`${import.meta.env.BASE_URL}buzz-loading-mark.svg`}
-            alt="Buzz"
+            src={`${import.meta.env.BASE_URL}${BRAND_LOADING || "buzz-loading-mark.svg"}`}
+            alt={BRAND_NAME}
             width="72"
             height="72"
           />

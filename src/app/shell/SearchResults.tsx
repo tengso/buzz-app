@@ -33,6 +33,7 @@ import {
   normalizeInChannel,
   parseSearchOperators,
 } from "./parseSearchOperators";
+import { BRAND_NAME } from "../../shared/brand";
 
 function conversationName(
   channel: ChannelSummary,
@@ -705,7 +706,9 @@ export function SearchResults({
       displayQuery={displayQuery}
       onDisplayQueryChange={updateDisplayQuery}
       input={input}
-      label={scopedChannelId ? "Search this conversation" : "Search Buzz"}
+      label={
+        scopedChannelId ? "Search this conversation" : `Search ${BRAND_NAME}`
+      }
       placeholder={
         scopedChannelId
           ? "Search messages…"

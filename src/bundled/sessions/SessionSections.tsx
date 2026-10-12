@@ -42,6 +42,7 @@ import {
 import type { SessionListItem } from "./SessionsWorkspace";
 import styles from "./SessionsWorkspace.module.css";
 import channelStyles from "../channels/Channels.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 /** The existing relay preference service owns delivery, rollback and retry. */
 export function SessionSections({
@@ -536,7 +537,7 @@ function NewSection({
         if (!open) close();
       }}
       title="Create new section"
-      description={`Move ${name} into a personal section that syncs across Buzz.`}
+      description={`Move ${name} into a personal section that syncs across ${BRAND_NAME}.`}
       initialFocus={input}
       actions={
         <>

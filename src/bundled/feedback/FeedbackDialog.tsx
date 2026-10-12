@@ -15,6 +15,7 @@ import { feedbackDiagnostics, feedbackImage } from "./prepare-feedback";
 import { Button } from "../../shared/design-system/ui/Button";
 import { Dialog } from "../../shared/design-system/ui/Dialog";
 import { Textarea } from "../../shared/design-system/ui/Textarea";
+import { BRAND_NAME } from "../../shared/brand";
 
 const categories = [
   ["bug", "Bug"],
@@ -295,7 +296,7 @@ function FeedbackForConnection({
         else onOpenChange(next);
       }}
       title="Send feedback"
-      description="Feedback text goes to this Buzz deployment's feedback inbox, not a channel. Images and optional diagnostics use ordinary media storage, not inbox-only access; people allowed to read media on this deployment may access them if they have the link. Images upload when selected; diagnostics upload when you send. Removing an attachment or closing this form does not delete uploaded files."
+      description={`Feedback text goes to this ${BRAND_NAME} deployment's feedback inbox, not a channel. Images and optional diagnostics use ordinary media storage, not inbox-only access; people allowed to read media on this deployment may access them if they have the link. Images upload when selected; diagnostics upload when you send. Removing an attachment or closing this form does not delete uploaded files.`}
       actions={
         <>
           <Button onClick={close}>Close</Button>
@@ -416,7 +417,7 @@ function FeedbackForConnection({
       )}
       {!available && (
         <p role="status">
-          Connect to a Buzz deployment to send or retry feedback.
+          Connect to a {BRAND_NAME} deployment to send or retry feedback.
         </p>
       )}
       {error && <p role="alert">{error}</p>}

@@ -10,6 +10,7 @@ import { createOAuthSession } from "./oauth/session";
 import { createAgentClient } from "./agents/client";
 import { RemoteAgents } from "./agents/RemoteAgents";
 import { createEnrollment } from "./agents/enrollment";
+import { BRAND_NAME } from "../../shared/brand";
 
 export const inject = ["host", "settingsCards", "relay", "communityReader"];
 export const apply: PluginModule["apply"] = (ctx) => {
@@ -45,7 +46,7 @@ export const apply: PluginModule["apply"] = (ctx) => {
           unavailableReason={
             browserLoginAvailable()
               ? unavailable
-              : "Open the Buzz desktop app to sign in with Builderlab."
+              : `Open the ${BRAND_NAME} desktop app to sign in with Builderlab.`
           }
           active={active}
         />

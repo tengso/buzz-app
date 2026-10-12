@@ -27,6 +27,7 @@ import {
   pairingAvailable,
   type PairingNative,
 } from "../../features/pairing/client";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function PairingSettings({
   communities,
@@ -92,7 +93,7 @@ export function PairingSettings({
       if (attempt !== lifetime.current) return;
       if (client.viewer && viewer !== client.viewer)
         throw new Error(
-          "Your saved Buzz account doesn’t match this account. Open the matching account before pairing.",
+          `Your saved ${BRAND_NAME} account doesn’t match this account. Open the matching account before pairing.`,
         );
       setAccount(viewer);
     } catch (error) {
@@ -147,8 +148,7 @@ export function PairingSettings({
     {
       id: "scan",
       title: "Scan QR code",
-      detail:
-        "Open Buzz on your phone and choose Add community to scan the code shown here.",
+      detail: `Open ${BRAND_NAME} on your phone and choose Add community to scan the code shown here.`,
       complete: scanned,
     },
     {
@@ -174,8 +174,8 @@ export function PairingSettings({
         Pair mobile
       </h2>
       <p className="mt-0 mb-6 text-body-sm text-muted">
-        Connect the Buzz mobile app to this community. Pairing is secured with
-        end-to-end encryption and a verification code.
+        Connect the {BRAND_NAME} mobile app to this community. Pairing is
+        secured with end-to-end encryption and a verification code.
       </p>
       <div className="w-full [container-type:inline-size]">
         <p aria-live="polite" className="sr-only">
@@ -192,7 +192,7 @@ export function PairingSettings({
                 <p role="status" className="text-body-sm text-muted">
                   {isTauri()
                     ? "Pairing uses this app’s native identity and is unavailable with the development broker. Restart with BUZZ_DEV_VIEWER empty to use native sign-in."
-                    : "Open the Buzz desktop app to pair your phone."}
+                    : `Open the ${BRAND_NAME} desktop app to pair your phone.`}
                 </p>
               ) : (
                 <>
@@ -203,7 +203,7 @@ export function PairingSettings({
                       <Button disabled={reading} onClick={() => void prepare()}>
                         {reading
                           ? "Opening your account…"
-                          : "Use existing Buzz account"}
+                          : `Use existing ${BRAND_NAME} account`}
                       </Button>
                     ) : (
                       <>
@@ -255,7 +255,7 @@ export function PairingSettings({
                     <img
                       className="block size-60 max-w-full shrink-0 bg-white"
                       src={`data:image/svg+xml,${encodeURIComponent(reducedMotion ? state.svg.replace(/<style>[\s\S]*?<\/style>/g, "") : state.svg)}`}
-                      alt="Scan this QR code with Buzz on your phone"
+                      alt={`Scan this QR code with ${BRAND_NAME} on your phone`}
                       width={240}
                       height={240}
                     />

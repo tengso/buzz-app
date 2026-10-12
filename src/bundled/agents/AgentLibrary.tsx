@@ -7,6 +7,7 @@ import { identityTiles } from "./identity-tiles";
 import type { RelaySession } from "../../features/relay/session";
 import { Button } from "../../shared/design-system/ui/Button";
 import { AgentCard } from "./AgentCard";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function AgentLibrary({
   session,
@@ -101,12 +102,12 @@ export function AgentLibrary({
           </summary>
           <section aria-label="Agent library" className="flex flex-col gap-4">
             <p className="m-0 text-body-sm text-secondary">
-              Saved identities from old Buzz and this community’s relay,
+              Saved identities from old {BRAND_NAME} and this community’s relay,
               including older agents. This is not the desktop app’s list of
               locally configured agents.
             </p>
             {!identities.length && (
-              <p>No visible identities in your Buzz library.</p>
+              <p>No visible identities in your {BRAND_NAME} library.</p>
             )}
             <div className="overflow-hidden rounded-xl border border-primary">
               {identities.map((identity) => (

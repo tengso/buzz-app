@@ -245,6 +245,37 @@ The gateway login is the outer gate only. Each user still signs in to Buzz with
 their own Nostr key. When the gateway session expires, relay requests fail until
 the page is reloaded and the user logs in again.
 
+## Branding
+
+A browser build can carry your own name and images instead of Buzz's. Put them
+in a folder and pass it as `BUZZ_BRAND_DIR` (with `BUZZ_HOST=browser`; desktop
+builds stay Buzz):
+
+```text
+brand/
+  brand.json            {"name": "HTI Research", "title": "HTI Research Team", "themeColor": "#0b3d91"}
+  logo.svg              sidebar logo (or .png/.webp), shown at 24 px high
+  loading.svg           loading screen (or .gif/.png/.webp), 72×72; defaults to the logo
+  favicon.png           tab icon (or .ico/.svg)
+  apple-touch-icon.png  180×180 home-screen icon
+```
+
+```bash
+BUZZ_HOST=browser BUZZ_PROXIED_RELAY_URL=ws://127.0.0.1:3100 BUZZ_BRAND_DIR=/path/to/brand \
+  pnpm exec vite build --outDir dist-gateway --emptyOutDir
+```
+
+- `name` (required) replaces every "Buzz" in the interface text, including
+  sign-in, sign-out, search, notifications and lines that refer to the desktop
+  app. `title` sets the browser tab title and defaults to `name`.
+  `themeColor` sets the browser's theme colour.
+- Every image is optional; a missing one keeps the Buzz image.
+- The branding is fixed at build time: change the folder, rebuild and copy the
+  build again.
+- Protocol and storage names (`X-Buzz-*` headers, "Buzz session" channels,
+  `buzz.*` keys) stay as they are, so a branded build works with the same relay
+  and data.
+
 ## Limitations
 
 - Saved groups, stars and "Me" placement need the local key or an extension with

@@ -5,6 +5,7 @@ import {
   PanelHeader,
   PanelHeaderLabel,
 } from "../../shared/design-system/ui/PanelHeader";
+import { BRAND_NAME } from "../../shared/brand";
 
 export const inject = ["pages"];
 export const apply: PluginModule["apply"] = (ctx) => {
@@ -46,7 +47,7 @@ function Bestie() {
       <img src="/bestie.png" alt="" className="size-20 object-contain" />
       <h2 className="text-heading">Meet your Bestie</h2>
       <p className="max-w-xs text-body-sm text-muted">
-        Your companion’s home in Buzz. Agent chat isn’t connected yet.
+        Your companion’s home in {BRAND_NAME}. Agent chat isn’t connected yet.
       </p>
     </div>
   );

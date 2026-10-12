@@ -6,6 +6,7 @@ import type {
 import { ClaudeLogoIcon } from "../shared/design-system/icons";
 import { Button } from "../shared/design-system/ui/Button";
 import styles from "./AgentSettings.module.css";
+import { BRAND_NAME } from "../shared/brand";
 
 const cliCommand = "npm install -g @anthropic-ai/claude-code@2.1.289";
 const adapterCommand =
@@ -122,7 +123,7 @@ export function ClaudeHarnessSetup({
             <>
               <p className="m-0 text-secondary">
                 {setup.installSupported && control.installClaude
-                  ? "Click Install. Buzz installs Node.js, Claude Code, and its ACP adapter for you."
+                  ? `Click Install. ${BRAND_NAME} installs Node.js, Claude Code, and its ACP adapter for you.`
                   : "Use Manual setup on this device, then click Check again."}
               </p>
               <details>

@@ -9,6 +9,7 @@ import { MatchedLabel } from "../../features/search/MatchedLabel";
 import { useSearchHighlight } from "../../features/search/use-search-highlight";
 import { PageIcon } from "./PageIcon";
 import "./SearchChoices.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 export type SearchDestination = {
   key: string;
@@ -46,7 +47,7 @@ export function SearchChoices({
   displayQuery,
   onDisplayQueryChange,
   input,
-  label = "Search Buzz",
+  label = `Search ${BRAND_NAME}`,
   placeholder = "Search pages, conversations and messages…",
   scope,
   children,

@@ -28,6 +28,7 @@ import {
 } from "../../features/conversation/LinkLabelContext";
 import { buzzLinkKind } from "../../features/navigation/buzz-links";
 import styles from "../../shared/InlineReference.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 // Match actual host boundaries, never a service name found in a path or query.
 const serviceHosts = {
@@ -136,7 +137,7 @@ export function LinkLabel({
     if (kind === "channel") label = "Channel";
     else if (kind === "message") label = "Message";
     else if (kind === "thread") label = "Thread";
-    else if (kind === "buzz") label = "Buzz";
+    else if (kind === "buzz") label = BRAND_NAME;
   }
   // The channel icon already supplies the visual hash.
   if (kind === "channel" && label.startsWith("#")) label = label.slice(1);

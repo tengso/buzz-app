@@ -27,6 +27,7 @@ import { NavigationItem } from "../../shared/design-system/ui/NavigationItem";
 import { Tabs } from "../../shared/design-system/ui/Tabs";
 import { SearchField } from "../../shared/design-system/ui/SearchField";
 import styles from "./ChannelTabs.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 // These existing channel tools accept their context from the host; arbitrary
 // target-based contributions still open through their own links.
@@ -216,7 +217,7 @@ export function ChannelTabPicker({
                 : query.trim()
                   ? "No matches. Try another name."
                   : category === "tools"
-                    ? "No channel tools are available. Enable tools in Settings → Plugins. Terminal requires Buzz Desktop."
+                    ? `No channel tools are available. Enable tools in Settings → Plugins. Terminal requires ${BRAND_NAME} Desktop.`
                     : category === "dm"
                       ? "No direct messages available yet."
                       : "No other channels available yet."}
