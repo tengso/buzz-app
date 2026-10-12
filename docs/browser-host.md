@@ -3,8 +3,8 @@
 The browser host runs the shared Buzz UI as a static site that talks directly to a
 standard [block/buzz](https://github.com/block/buzz) relay. There is no extra
 backend: the relay serves the WebSocket, `/query`, `/count`, `/events`, `/upload`
-and `/media/`; the browser signs with a NIP-07 extension (Alby, nos2x) and never
-sees a private key.
+and `/media/`. The browser signs either with a NIP-07 extension (Alby, nos2x) or
+with the user's key held encrypted on the device (see [Sign-in methods](#sign-in-methods)).
 
 This is separate from `just web`, which uses the development broker in
 [`browser-host/`](../browser-host/README.md).
@@ -13,9 +13,15 @@ This is separate from `just web`, which uses the development broker in
 
 - Build-time host selection: `BUZZ_HOST=browser` (exposed as
   `import.meta.env.VITE_BUZZ_HOST`). Without it, builds behave as before.
-- Identity: `window.nostr.getPublicKey()` / `signEvent()`
-  ([`identity/browser.ts`](../src/features/identity/browser.ts)). Every signature
-  is verified and must come from the active viewer.
+- Identity ([`identity/browser.ts`](../src/features/identity/browser.ts)): a NIP-07
+  extension or a local NIP-49 key
+  ([`identity/local-key.ts`](../src/features/identity/local-key.ts)). Every
+  signature is verified and must come from the active viewer.
+- Private records ([`relay/browser-private.ts`](../src/features/relay/browser-private.ts)):
+  saved groups, stars, mutes and sort order, read state and private channel
+  recipes are NIP-44 encrypted to the viewer's own key, with the same
+  coordinates, tags and size limits as the desktop host. This needs the local key,
+  or an extension that implements `window.nostr.nip44`.
 - Relay access ([`relay/browser.ts`](../src/features/relay/browser.ts)):
   - One WebSocket per community, logged in once with NIP-42. Plain reads, counts
     and publishes travel over it as `REQ`, `COUNT` and `EVENT`.
@@ -28,8 +34,32 @@ This is separate from `just web`, which uses the development broker in
   auth header to same-origin `/media/` requests so images and video load.
 
 Signing cost with a standard relay: about 7 signatures per page load (5 NIP-98,
-2 NIP-42) plus one per message. Configure the extension to always allow the
-site, or each one prompts.
+2 NIP-42) plus one per message, across about 8–10 event kinds. With an extension,
+each may prompt: nos2x can only remember approvals per event kind, Alby offers
+"Don't ask again for any nostr requests". The local key never prompts.
+
+## Sign-in methods
+
+The first visit offers two choices; the choice is remembered in this browser.
+
+- **Use my key on this device.** Paste an `nsec` (Buzz desktop: Settings →
+  Profile → Reveal private key); Buzz shows the matching `npub`. Choose a
+  passphrase (8+ characters). Only the NIP-49 `ncryptsec` is saved, in
+  `localStorage`. The passphrase is asked once per browser; after that all
+  signing and NIP-44 encryption happen in the page without prompts.
+  - The unlock lasts across reloads, tabs and browser restarts: the key is kept
+    in `localStorage` encrypted with a non-extractable AES-GCM key held in
+    IndexedDB. That keeps the raw key out of storage files, but any script in
+    the page can still unwrap it. Signing out removes both.
+  - Settings → Sign out locks the key; signing out with "remove data" forgets it.
+    The unlock screen also has **Forget key on this device**.
+  - Trade-off: while unlocked, the key is usable by the page's JavaScript. Any
+    script running in the page (an injection bug, a malicious extension) could
+    read it, which an extension's separate process prevents. Serve the app with the
+    Content-Security-Policy from the nginx configs below, and prefer this mode on
+    private deployments such as the loopback setup.
+- **Use a signer extension (NIP-07).** Buzz never sees the key. Saved groups,
+  stars and "Me" work only if the extension implements NIP-44.
 
 ## Deploy
 
@@ -89,10 +119,10 @@ If the first returns HTML, the app fails with
 
 ### 4. Sign in
 
-1. Install a NIP-07 extension and import the key of an account that is a member
-   of the community.
-2. Open `https://buzz.example.com`. Without an extension the app shows
-   "Install a Nostr signer extension (NIP-07), such as Alby or nos2x, then retry."
+1. Open `https://buzz.example.com` and pick a [sign-in method](#sign-in-methods)
+   for an account that is a member of the community. With the extension method
+   and no extension installed, the app shows "Install a Nostr signer extension
+   (NIP-07), such as Alby or nos2x, then retry."
 3. Click **+** in the community rail, enter `wss://buzz.example.com`, then
    **Continue**. Enter an invite code if the relay requires one, and publish a
    profile.
@@ -140,8 +170,12 @@ relay 127.0.0.1:3100          (team-builder --bind/--port)
 
 ## Limitations
 
-- Saved groups and stars and "Me" placement need NIP-44 encryption, which the
-  browser host does not implement yet.
+- Saved groups, stars and "Me" placement need the local key or an extension with
+  NIP-44 support.
+- The Content-Security-Policy allows images and media only from the relay's
+  origin, `data:` and `blob:`; profile pictures hosted elsewhere don't load. To
+  allow them, add `https:` to `img-src` (this also lets an injected script leak
+  data through image URLs).
 - Desktop-only features (local agents, terminal, plugins, Git, pairing) are not
   available.
 - Channel members → Refresh may show "Archived identities could not be checked"
