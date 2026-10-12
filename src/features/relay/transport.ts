@@ -70,6 +70,7 @@ import {
   type ReadFilter,
   type RelayEvent,
 } from "./events";
+import { BRAND_NAME } from "../../shared/brand";
 
 /** Relay connection. Implementations verify signatures; callers never see raw JSON. */
 export interface RelayWriter {
@@ -700,7 +701,8 @@ export async function connectBrokerTransport(
               credentials: "same-origin",
               signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
             });
-            if (!result.ok) throw new Error("Current Buzz library unavailable");
+            if (!result.ok)
+              throw new Error(`Current ${BRAND_NAME} library unavailable`);
             return result.json();
           },
         }

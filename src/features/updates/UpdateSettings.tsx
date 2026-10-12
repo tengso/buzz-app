@@ -6,6 +6,7 @@ import { EmptyState } from "../../shared/design-system/ui/EmptyState";
 import { ArrowsClockwiseIcon } from "../../shared/design-system/icons";
 import { Header } from "../../shared/design-system/ui/Header";
 import type { Updates } from "./updates";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function UpdateSettings({
   updates,
@@ -52,7 +53,7 @@ export function UpdateSettings({
     available: "Preparing update…",
     downloading: "Downloading update…",
     installing: "Installing update…",
-    ready: "Ready to install. Buzz will restart.",
+    ready: `Ready to install. ${BRAND_NAME} will restart.`,
     error: "",
   };
   const label =

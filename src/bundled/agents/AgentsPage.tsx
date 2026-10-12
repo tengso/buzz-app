@@ -44,6 +44,7 @@ import {
 import { CatalogLauncher } from "./CommunityCatalog";
 import { PanelCard } from "../../features/panels/PanelCard";
 import { PanelFrame } from "../../features/panels/PanelFrame";
+import { BRAND_NAME } from "../../shared/brand";
 
 const noTemplates = {
   subscribe: () => () => {},
@@ -483,7 +484,10 @@ function ManagedAgents({
         automatic startup in the old app.
       </p>
       {state.data?.agents.length === 0 && (
-        <p>No agents yet. Create an agent or import one from old Buzz below.</p>
+        <p>
+          No agents yet. Create an agent or import one from old {BRAND_NAME}{" "}
+          below.
+        </p>
       )}
       <div className="agent-grid">
         {state.data?.agents.map((agent) => {

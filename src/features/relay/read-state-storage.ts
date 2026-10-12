@@ -15,6 +15,7 @@ import {
   READ_RESERVE_BYTES,
   READ_RESERVE_KEYS,
 } from "./read-state-retention";
+import { BRAND_NAME } from "../../shared/brand";
 
 export type ReadJournal = Readonly<{
   version: 1;
@@ -205,7 +206,7 @@ function openDatabase() {
     };
     request.onerror = () => reject(request.error);
     request.onblocked = () =>
-      reject(new Error("Close other Buzz windows to open read state"));
+      reject(new Error(`Close other ${BRAND_NAME} windows to open read state`));
   });
 }
 /** Forgets one partition's journal after its session is disposed, so a left

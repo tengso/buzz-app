@@ -47,6 +47,7 @@ import {
   GitBranchIcon,
 } from "../../shared/design-system/icons";
 import "./projects.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 type Open = Navigation["open"];
 const labels = {
@@ -315,7 +316,7 @@ function Destination({
                   disabled={!entityDtag(entity.dtag)}
                   title={
                     !entityDtag(entity.dtag)
-                      ? "This repository identifier cannot be opened with a Buzz link"
+                      ? `This repository identifier cannot be opened with a ${BRAND_NAME} link`
                       : undefined
                   }
                   onClick={() => go(entity)}
@@ -474,7 +475,7 @@ function Destination({
                         disabled={!entityDtag(repo.dtag)}
                         title={
                           !entityDtag(repo.dtag)
-                            ? "This repository identifier cannot be opened with a Buzz link"
+                            ? `This repository identifier cannot be opened with a ${BRAND_NAME} link`
                             : undefined
                         }
                         onClick={() => go(repo)}

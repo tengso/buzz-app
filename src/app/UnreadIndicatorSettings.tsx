@@ -4,6 +4,7 @@ import { ToastNotice } from "../shared/design-system/ui/Toast";
 import { useSyncExternalStore } from "react";
 import type { UnreadIndicator } from "../features/notifications/indicator";
 import { Button } from "../shared/design-system/ui/Button";
+import { BRAND_NAME } from "../shared/brand";
 
 export function UnreadIndicatorSettings({
   indicator,
@@ -31,7 +32,7 @@ export function UnreadIndicatorSettings({
                   default:
                     "Allow notifications and badges to show the unread dot.",
                   setup: "Set up Dock badges to show the unread dot.",
-                  enabled: "Buzz can show Dock badges.",
+                  enabled: `${BRAND_NAME} can show Dock badges.`,
                   disabled:
                     "Dock badges are off. Turn them on in macOS System Settings.",
                   denied:

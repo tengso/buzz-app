@@ -53,6 +53,7 @@ import {
   type PendingDeletion,
   type Quota,
 } from "./api";
+import { BRAND_NAME } from "../../shared/brand";
 
 const card = "mt-6 rounded-xl border border-default p-5";
 const sectionClassName = "mt-section-gap";
@@ -128,7 +129,7 @@ export function HostedCommunities({
         setDeletionNotice("");
       }
       if (!current.error?.setup_needed)
-        check(current, "Could not load the connected Buzz identity.");
+        check(current, `Could not load the connected ${BRAND_NAME} identity.`);
       if (!list.error?.setup_needed) check(list, "Could not load communities.");
       setIdentityLoadFailed(false);
       const nextIdentity = current.identity ?? null;
@@ -390,7 +391,7 @@ export function HostedCommunities({
   const bind = async () => {
     const reply = check(
       await api.call("bind"),
-      "Could not connect the Buzz identity.",
+      `Could not connect the ${BRAND_NAME} identity.`,
     );
     setIdentity(reply.identity ?? null);
     await settle();
@@ -444,7 +445,7 @@ export function HostedCommunities({
         <EmptyState
           icon={<GlobeIcon />}
           title="Sign in to manage hosted communities"
-          description="Sign in through your browser to manage Block hosting. The rest of Buzz works without a Builderlab account."
+          description={`Sign in through your browser to manage Block hosting. The rest of ${BRAND_NAME} works without a Builderlab account.`}
           action={
             <>
               <Button
@@ -506,8 +507,8 @@ export function HostedCommunities({
               identityLoadFailed ? null : (
                 <div className="space-y-3">
                   <InlineHeader
-                    title="Link this account to your Buzz identity"
-                    subtitle="This Builderlab account isn’t linked to a Buzz identity yet. Connect this device’s key to create and own communities under it — Buzz signs a one-time challenge locally, so your private key never leaves this computer."
+                    title={`Link this account to your ${BRAND_NAME} identity`}
+                    subtitle={`This Builderlab account isn’t linked to a ${BRAND_NAME} identity yet. Connect this device’s key to create and own communities under it — ${BRAND_NAME} signs a one-time challenge locally, so your private key never leaves this computer.`}
                   />
                   <Button
                     variant="primary"
@@ -515,19 +516,19 @@ export function HostedCommunities({
                     disabled={busy}
                     onClick={() => void run("bind", bind)}
                   >
-                    Connect Buzz identity
+                    Connect {BRAND_NAME} identity
                   </Button>
                 </div>
               )
             ) : local === undefined && bound ? (
               <p role="status" className="space-y-3">
-                Checking this device’s Buzz identity…
+                Checking this device’s {BRAND_NAME} identity…
               </p>
             ) : local === null && bound ? (
               <div className="space-y-3">
                 <p role="alert" className="error m-0">
-                  Could not read this device’s Buzz identity, so community
-                  actions are paused.
+                  Could not read this device’s {BRAND_NAME} identity, so
+                  community actions are paused.
                 </p>
                 <div className="mt-3">
                   <Button onClick={loadLocal}>Try again</Button>
@@ -537,10 +538,10 @@ export function HostedCommunities({
               <section className="space-y-3" aria-label="Identity mismatch">
                 <InlineHeader
                   icon={<WarningCircleIcon size={16} aria-hidden="true" />}
-                  title="This account is connected to a different Buzz identity"
+                  title={`This account is connected to a different ${BRAND_NAME} identity`}
                 />
                 <p className="text-body-sm text-muted">
-                  Your Builderlab account is linked to another Buzz key.
+                  Your Builderlab account is linked to another {BRAND_NAME} key.
                   Creating communities and copying addresses are paused until
                   the identities match.
                 </p>
@@ -558,7 +559,7 @@ export function HostedCommunities({
                     void run("switch", async () => {
                       check(
                         await api.call("unbind"),
-                        "Could not release the previously connected Buzz identity.",
+                        `Could not release the previously connected ${BRAND_NAME} identity.`,
                       );
                       setPendingDeletion(null);
                       // Unbound is a valid resting state; Connect recovers it.
@@ -574,7 +575,7 @@ export function HostedCommunities({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="m-0 flex min-w-0 flex-wrap items-center gap-2 text-body-sm">
                   <CheckCircleIcon size={16} aria-hidden="true" />
-                  Buzz identity connected{" "}
+                  {BRAND_NAME} identity connected{" "}
                   <span className="break-all font-mono text-muted">
                     {npub(bound)}
                   </span>
@@ -585,14 +586,13 @@ export function HostedCommunities({
                   disabled={busy}
                   onClick={() =>
                     setConfirm({
-                      title: "Unpair this Buzz identity?",
-                      description:
-                        "Your Builderlab account will no longer be connected to this Buzz key. You can reconnect any key later, but community actions stay unavailable until you do.",
+                      title: `Unpair this ${BRAND_NAME} identity?`,
+                      description: `Your Builderlab account will no longer be connected to this ${BRAND_NAME} key. You can reconnect any key later, but community actions stay unavailable until you do.`,
                       action: "Unpair identity",
                       run: async () => {
                         check(
                           await api.call("unbind"),
-                          "Could not unpair the Buzz identity.",
+                          `Could not unpair the ${BRAND_NAME} identity.`,
                         );
                         setPendingDeletion(null);
                         setIdentity(null);
@@ -635,10 +635,10 @@ export function HostedCommunities({
             <div className={card}>
               <p className="m-0 text-label">Deletion status is unknown</p>
               <p className="text-body-sm text-muted">
-                Buzz will not check automatically. Use Check deletion status
-                when deletion is available. This resends the same request UUID,
-                which may admit the original intent; a failed check does not
-                prove the earlier request was never accepted.
+                {BRAND_NAME} will not check automatically. Use Check deletion
+                status when deletion is available. This resends the same request
+                UUID, which may admit the original intent; a failed check does
+                not prove the earlier request was never accepted.
               </p>
               <p className="break-all font-mono text-body-sm">
                 {pendingDeletion.request.host}
@@ -679,9 +679,9 @@ export function HostedCommunities({
               ) : (
                 <>
                   A deletion request from {npub(blockedOwner)} is still pending
-                  on this device. Switch to that Buzz identity and use Check
-                  deletion status before starting another deletion here. If you
-                  no longer have that identity, contact support.
+                  on this device. Switch to that {BRAND_NAME} identity and use
+                  Check deletion status before starting another deletion here.
+                  If you no longer have that identity, contact support.
                 </>
               )}
             </p>
@@ -1200,7 +1200,7 @@ function TransferDialog({
       onOpenChange={(open) => !open && close()}
       preventClose={busy}
       title="Transfer ownership"
-      description={`Transfer ${name} to another person. You become a regular member. The recipient needs a connected Buzz identity first, and this can’t be undone.`}
+      description={`Transfer ${name} to another person. You become a regular member. The recipient needs a connected ${BRAND_NAME} identity first, and this can’t be undone.`}
       actions={
         <>
           <Button disabled={busy} onClick={close}>

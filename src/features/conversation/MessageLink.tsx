@@ -38,6 +38,7 @@ import {
 import { BuzzLinkPreview } from "./BuzzLinkPreview";
 import { messageViewKey } from "../messages/view-key";
 import styles from "./LinkPreview.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 const empty: readonly Contribution<LinkRenderer>[] = [];
 const snapshot = () => empty;
@@ -312,7 +313,10 @@ export function MessageLink({
         />
       )}
       {unavailable && (
-        <span role="status"> This Buzz link couldn’t be opened here.</span>
+        <span role="status">
+          {" "}
+          This {BRAND_NAME} link couldn’t be opened here.
+        </span>
       )}
     </>
   );

@@ -2,6 +2,7 @@ import type { Host, HostResponse } from "../../../features/host/service";
 import { oauthTarget, type Credential } from "../oauth/browser";
 import type { OAuthSession } from "../oauth/session";
 import { clearRegistration, registrationIntent } from "./registration";
+import { BRAND_NAME } from "../../../shared/brand";
 
 export type RemoteAgent = Readonly<{
   id: string;
@@ -224,7 +225,7 @@ export function createAgentClient(
       const community = communityUrl();
       if (!host.prepareRemoteAgentAuthorization)
         throw new Error(
-          "Remote agent authorization is unavailable in this Buzz build.",
+          `Remote agent authorization is unavailable in this ${BRAND_NAME} build.`,
         );
       const tag = await host.prepareRemoteAgentAuthorization(
         agent.pubkey,
@@ -237,7 +238,7 @@ export function createAgentClient(
         throw new Error("Community changed. Use Finish setup to try again.");
       if (owner && tag[1] !== owner)
         throw new Error(
-          "Agent authorization and community identities differ. Retry with the same Buzz identity.",
+          `Agent authorization and community identities differ. Retry with the same ${BRAND_NAME} identity.`,
         );
       const result = await request(
         "attest-agent",

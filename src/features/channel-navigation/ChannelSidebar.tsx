@@ -84,6 +84,7 @@ import {
 import { splitPartition } from "../relay/partition";
 import { ChannelSidebarResizeHandle } from "./ChannelSidebarResizeHandle";
 import styles from "../../bundled/channels/Channels.module.css";
+import { BRAND_LOGO, BRAND_NAME } from "../../shared/brand";
 
 type Props = {
   relay: RelayData;
@@ -144,11 +145,19 @@ function SidebarNavigation({ children }: { children: ReactNode }) {
   return (
     <>
       <div className={styles.sidebarBrand}>
-        <span
-          className={styles.sidebarBrandMark}
-          role="img"
-          aria-label="Buzz"
-        />
+        {BRAND_LOGO ? (
+          <img
+            className={styles.sidebarBrandLogo}
+            src={`${import.meta.env.BASE_URL}${BRAND_LOGO}`}
+            alt={BRAND_NAME}
+          />
+        ) : (
+          <span
+            className={styles.sidebarBrandMark}
+            role="img"
+            aria-label={BRAND_NAME}
+          />
+        )}
       </div>
       {/* The shell passes null when no primary page is active; the wrapper's margin must not remain around nothing. */}
       {children != null && children !== false && (

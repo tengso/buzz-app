@@ -11,6 +11,7 @@ import type {
   CloneSettings,
 } from "../../features/agents/control";
 import { Button } from "../../shared/design-system/ui/Button";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function AgentImport({
   ref,
@@ -75,7 +76,7 @@ export function AgentImport({
           setError(
             selectedPubkey
               ? "We couldn’t load this agent from the source."
-              : "Could not load agents from old Buzz. Check Import options and try again.",
+              : `Could not load agents from old ${BRAND_NAME}. Check Import options and try again.`,
           );
       } finally {
         if (generation.current === current) setPreviewing(false);
@@ -165,7 +166,9 @@ export function AgentImport({
         <dl className="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-body-sm">
           <dt className="text-secondary">Source</dt>
           <dd className="m-0">
-            {source === "installed" ? "Installed Buzz" : "Development Buzz"}
+            {source === "installed"
+              ? `Installed ${BRAND_NAME}`
+              : `Development ${BRAND_NAME}`}
           </dd>
           <dt className="text-secondary">Destination</dt>
           <dd className="m-0 break-all" title={destination}>
@@ -206,7 +209,8 @@ export function AgentImport({
           </dd>
         </dl>
         <p className="m-0 text-body-sm text-secondary">
-          Stop the agent in the old Buzz installation before starting it here.
+          Stop the agent in the old {BRAND_NAME} installation before starting it
+          here.
         </p>
         {previewing && (
           <p role="status" className="m-0 text-body-sm">
@@ -232,8 +236,8 @@ export function AgentImport({
                   void load(next, destination);
                 }}
               >
-                <option value="installed">Installed Buzz</option>
-                <option value="development">Development Buzz</option>
+                <option value="installed">Installed {BRAND_NAME}</option>
+                <option value="development">Development {BRAND_NAME}</option>
               </select>
             </label>
             {preview && (
@@ -275,7 +279,7 @@ export function AgentImport({
     <section
       ref={ref}
       tabIndex={-1}
-      aria-label="Import from old Buzz"
+      aria-label={`Import from old ${BRAND_NAME}`}
       className="flex flex-col gap-4 pt-3"
     >
       <p className="m-0 text-body-sm text-secondary">
@@ -301,10 +305,10 @@ export function AgentImport({
       {repaired && (
         <p role="status">
           Team instructions imported for {repaired}. Use Start when ready to
-          hand over from old Buzz.
+          hand over from old {BRAND_NAME}.
         </p>
       )}
-      {previewing && <p role="status">Loading agents from old Buzz…</p>}
+      {previewing && <p role="status">Loading agents from old {BRAND_NAME}…</p>}
       {error && (
         <div className="flex flex-col items-start gap-2">
           <p role="alert">{error}</p>
@@ -405,8 +409,8 @@ export function AgentImport({
               {
                 label: "",
                 options: [
-                  { value: "installed", label: "Installed Buzz" },
-                  { value: "development", label: "Development Buzz" },
+                  { value: "installed", label: `Installed ${BRAND_NAME}` },
+                  { value: "development", label: `Development ${BRAND_NAME}` },
                 ],
               },
             ]}

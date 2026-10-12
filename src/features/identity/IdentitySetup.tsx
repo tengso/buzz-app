@@ -8,6 +8,7 @@ import { macTitleBarDragHandlers } from "../../app/shell/title-bar";
 import { Button } from "../../shared/design-system/ui/Button";
 import { Input } from "../../shared/design-system/ui/Input";
 import type { Identity } from "./service";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function IdentitySetup({
   identity,
@@ -34,7 +35,7 @@ export function IdentitySetup({
         </header>
       )}
       <h1 id="identity-setup-title" className="text-heading">
-        Your Buzz identity
+        Your {BRAND_NAME} identity
       </h1>
       {state.status === "loading" ? (
         <p role="status">Opening your saved identity…</p>
@@ -48,8 +49,8 @@ export function IdentitySetup({
       ) : (
         <>
           <p>
-            Already use Buzz? Bring your existing private key to keep the same
-            identity.
+            Already use {BRAND_NAME}? Bring your existing private key to keep
+            the same identity.
           </p>
           <p>
             Your key is stored securely on this device. No community is joined
@@ -76,8 +77,8 @@ export function IdentitySetup({
                 onChange={(event) => setNsec(event.target.value)}
               />
               <p>
-                Copy this from Identity details in your old Buzz app. Never
-                share it with anyone.
+                Copy this from Identity details in your old {BRAND_NAME} app.
+                Never share it with anyone.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button

@@ -14,6 +14,7 @@ import {
   unlockLocalKey,
 } from "./local-key";
 import type { IdentitySnapshot } from "./service";
+import { BRAND_NAME } from "../../shared/brand";
 
 /** NIP-07 provider. The private key stays inside the extension. */
 export type Nip07 = {
@@ -197,11 +198,11 @@ export function createBrowserIdentity() {
     importKey: (_nsec: string) =>
       Promise.reject(new Error("Choose a passphrase to save your key.")),
     create: () =>
-      Promise.reject(new Error("Create identities in Buzz desktop.")),
+      Promise.reject(new Error(`Create identities in ${BRAND_NAME} desktop.`)),
     exportKey: async (): Promise<string> => {
       if (signerMode() !== "local")
         throw new Error(
-          "Manage this key in your signer extension, not in Buzz.",
+          `Manage this key in your signer extension, not in ${BRAND_NAME}.`,
         );
       return localExportKey();
     },
@@ -209,7 +210,7 @@ export function createBrowserIdentity() {
       Promise.resolve<string | null>(
         signerMode() === "local"
           ? null
-          : "Sign out in your signer extension; Buzz web stores no key.",
+          : `Sign out in your signer extension; ${BRAND_NAME} web stores no key.`,
       ),
     /** Locks the key (or forgets it with `wipe`), then reloads to the sign-in screen. */
     async signOut({ wipe }: { wipe: boolean; removeAgents: boolean }) {

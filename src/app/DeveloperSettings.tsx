@@ -15,6 +15,7 @@ import {
 import type { RelayData } from "../features/relay/service";
 import { clientMetrics } from "../features/developer/client-metrics";
 import { ClientMetricsPanel } from "./ClientMetricsPanel";
+import { BRAND_NAME } from "../shared/brand";
 
 type BrokerStats = {
   queries: number;
@@ -94,9 +95,11 @@ export function DeveloperSettings({ relay }: { relay: RelayData }) {
     setClearing(true);
     try {
       await relay.clearCache();
-      setStatus("Cache cleared. Buzz will load channels and media as needed.");
+      setStatus(
+        `Cache cleared. ${BRAND_NAME} will load channels and media as needed.`,
+      );
     } catch (error) {
-      setStatus(`Buzz couldn’t clear the cache. ${String(error)}`);
+      setStatus(`${BRAND_NAME} couldn’t clear the cache. ${String(error)}`);
     } finally {
       setClearing(false);
     }

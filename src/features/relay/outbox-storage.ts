@@ -1,4 +1,5 @@
 import type { OutboxStorage, OutgoingEvent } from "./outbox";
+import { BRAND_NAME } from "../../shared/brand";
 
 function openDatabase() {
   return new Promise<IDBDatabase>((resolve, reject) => {
@@ -18,7 +19,9 @@ function openDatabase() {
     };
     request.onerror = () => reject(request.error);
     request.onblocked = () =>
-      reject(new Error("Close other Buzz windows to upgrade the outbox"));
+      reject(
+        new Error(`Close other ${BRAND_NAME} windows to upgrade the outbox`),
+      );
   });
 }
 

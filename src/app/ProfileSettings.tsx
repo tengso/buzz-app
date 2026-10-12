@@ -32,6 +32,7 @@ import {
 } from "../features/communities/ProfileFields";
 import * as communityApi from "../features/communities/api";
 import type { Membership } from "../features/communities/service";
+import { BRAND_NAME } from "../shared/brand";
 
 type LoadedProfile = Awaited<ReturnType<typeof communityApi.inspectProfile>>;
 
@@ -400,11 +401,11 @@ export function ProfileSettings({
                 </SettingsGroup>
                 <SettingsGroup>
                   <PreferenceRow
-                    title="Sign out of Buzz"
+                    title={`Sign out of ${BRAND_NAME}`}
                     subtitle="Remove your private key from this device. Also ends Builderlab and hosted community logins."
                     trailing={
                       <Button type="button" onClick={() => setSigningOut(true)}>
-                        Sign out of Buzz
+                        Sign out of {BRAND_NAME}
                       </Button>
                     }
                   />

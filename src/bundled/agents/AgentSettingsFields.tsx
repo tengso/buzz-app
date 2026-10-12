@@ -24,6 +24,7 @@ import { harnessPreset } from "../../features/agents/harness-presets";
 import { PresetSetupHint } from "../../features/agents/PresetSetupHint";
 import { Button } from "../../shared/design-system/ui/Button";
 import { harnessPolicy } from "./harness-policy";
+import { BRAND_NAME } from "../../shared/brand";
 
 // Draft → Agent defaults → build floor, as native resolves it; null when a
 // saved or global BUZZ_AGENT_PROVIDER override hides the effective value.
@@ -225,7 +226,8 @@ export function AgentSettingsFields({
             <p className="text-body-sm text-secondary">
               Shell setup not verified. On Windows, the shell tool needs Git
               Bash from Git for Windows, or a shell set with BUZZ_SHELL under
-              Advanced → Environment. Buzz does not check this before starting.
+              Advanced → Environment. {BRAND_NAME} does not check this before
+              starting.
             </p>
           )}
           {buzzAgent && windows && databricks && (
@@ -282,9 +284,9 @@ export function AgentSettingsFields({
               {(draft.model || draft.provider) && (
                 <div className="space-y-3">
                   <p role="alert">
-                    This agent has model or provider settings that Buzz cannot
-                    apply to {preset.label} yet. Use {preset.label} defaults
-                    before saving or starting.
+                    This agent has model or provider settings that {BRAND_NAME}{" "}
+                    cannot apply to {preset.label} yet. Use {preset.label}{" "}
+                    defaults before saving or starting.
                   </p>
                   {draft.model && (
                     <p>
@@ -405,7 +407,7 @@ export function AgentSettingsFields({
                     {pi
                       ? 'Pi needs both Provider and Model to override its defaults. Advanced Pi options follow --; for example: ["--", "--extension", "/absolute/path/to/extension.ts"]. PI_CODING_AGENT_DIR can select a local Pi configuration directory.'
                       : preset
-                        ? `Configure ${preset.label}'s model and sign-in in the harness itself. Buzz model and provider overrides are unavailable.`
+                        ? `Configure ${preset.label}'s model and sign-in in the harness itself. ${BRAND_NAME} model and provider overrides are unavailable.`
                         : "Environment overrides take precedence over provider and model selections."}{" "}
                     Arguments are passed literally, not through a shell.
                   </p>

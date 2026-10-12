@@ -1,5 +1,6 @@
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { profileKey, profileTarget } from "../../features/profiles/target";
+import { BRAND_NAME } from "../../shared/brand";
 
 export type Assignee = { pubkey: string; name: string };
 export type Status = "todo" | "doing" | "done";
@@ -128,7 +129,8 @@ export function assignTodo(
   if (!item)
     throw new Error("This todo changed. Reload the Canvas before editing it.");
   const target = assignee && profileTarget(assignee.pubkey);
-  if (assignee && !target) throw new Error("Choose a valid Buzz user.");
+  if (assignee && !target)
+    throw new Error(`Choose a valid ${BRAND_NAME} user.`);
   const name =
     assignee?.name.replace(/\s+/g, " ").trim() || assignee?.pubkey || "";
   const escaped = name.replace(/[\\`*_{}[\]()#+\-.!<>|&]/g, "\\$&");

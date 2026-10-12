@@ -19,6 +19,7 @@ import {
   type SoundName,
 } from "./sound";
 import { pluginNotificationText, type NotificationText } from "./content";
+import { BRAND_NAME } from "../../shared/brand";
 
 export type NotificationCategoryDescriptor = Readonly<{
   id: string;
@@ -326,7 +327,7 @@ export class NotificationsService extends Service implements Notifications {
     valid: () => boolean,
     eligible: () => NotificationEligibility = () => true,
     text: () => NotificationText = () => ({
-      title: "Buzz",
+      title: BRAND_NAME,
       body: `New ${label.toLowerCase()}`,
     }),
   ) {

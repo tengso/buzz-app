@@ -17,6 +17,7 @@ import type {
 } from "../../features/panels/service";
 import type { TerminalSessions } from "./sessions";
 import styles from "./Terminal.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function TerminalPanel({
   channelContext,
@@ -162,8 +163,8 @@ function Content({
       />
       {!sessions.available ? (
         <p className={`${styles.notice} text-body`}>
-          Open Buzz Desktop to use your local shell. The browser cannot start a
-          terminal on your computer.
+          Open {BRAND_NAME} Desktop to use your local shell. The browser cannot
+          start a terminal on your computer.
         </p>
       ) : (
         <>

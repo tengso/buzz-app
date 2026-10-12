@@ -3,6 +3,7 @@ import { Button } from "../../shared/design-system/ui/Button";
 import { Input } from "../../shared/design-system/ui/Input";
 import type { BrowserIdentity } from "./browser";
 import { npubOf } from "./local-key";
+import { BRAND_NAME } from "../../shared/brand";
 
 function preview(nsec: string) {
   try {
@@ -31,7 +32,7 @@ export function BrowserIdentitySetup({
   return (
     <main className="p-8" aria-labelledby="identity-setup-title">
       <h1 id="identity-setup-title" className="text-heading">
-        Your Buzz identity
+        Your {BRAND_NAME} identity
       </h1>
       {state.status === "loading" ? (
         <p role="status">Connecting to your signer…</p>
@@ -105,7 +106,7 @@ export function BrowserIdentitySetup({
           <p>
             {npub
               ? `Identity: ${npub}`
-              : "Copy this from Settings → Profile in Buzz desktop. Never share it."}
+              : `Copy this from Settings → Profile in ${BRAND_NAME} desktop. Never share it.`}
           </p>
           <label htmlFor="key-passphrase">
             Passphrase (at least 8 characters)
@@ -128,9 +129,9 @@ export function BrowserIdentitySetup({
             onChange={(event) => setConfirm(event.target.value)}
           />
           <p>
-            Buzz saves an encrypted copy (NIP-49) in this browser and stays
-            unlocked here until you sign out. Use this only on a device you
-            trust.
+            {BRAND_NAME} saves an encrypted copy (NIP-49) in this browser and
+            stays unlocked here until you sign out. Use this only on a device
+            you trust.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button
@@ -159,7 +160,7 @@ export function BrowserIdentitySetup({
         </form>
       ) : (
         <>
-          <p>How should Buzz sign for you in this browser?</p>
+          <p>How should {BRAND_NAME} sign for you in this browser?</p>
           {state.error && <p role="alert">{state.error}</p>}
           <div className="flex flex-wrap gap-3">
             <Button variant="primary" onClick={() => setImporting(true)}>

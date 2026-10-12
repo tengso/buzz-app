@@ -3,6 +3,7 @@ import type { ChannelSummary, Profile } from "../relay/contracts";
 import type { IncomingMessage } from "../relay/incoming";
 import { scanMarkdown } from "../relay/message-content";
 import type { NotificationCategory } from "./preferences";
+import { BRAND_NAME } from "../../shared/brand";
 
 export type NotificationText = Readonly<{ title: string; body: string }>;
 
@@ -61,7 +62,7 @@ export function pluginNotificationText(
   label: string,
 ): NotificationText {
   return Object.freeze({
-    title: shortText(input.title ?? "", 128) || "Buzz",
+    title: shortText(input.title ?? "", 128) || BRAND_NAME,
     body: plainText(input.body ?? "") || `New ${label.toLowerCase()}`,
   });
 }

@@ -24,6 +24,11 @@ export default defineConfig(async ({ command, mode }) => {
   const proxiedOrigin = proxiedRelay ? relayOrigin(proxiedRelay) : "";
   if (proxiedOrigin && env.BUZZ_HOST !== "browser")
     throw new Error("BUZZ_PROXIED_RELAY_URL requires BUZZ_HOST=browser.");
+  const brandDir = env.BUZZ_BRAND_DIR?.trim();
+  if (brandDir && env.BUZZ_HOST !== "browser")
+    throw new Error("BUZZ_BRAND_DIR requires BUZZ_HOST=browser.");
+  const brandHost = await import("./browser-host/brand.mjs");
+  const brand = brandDir ? brandHost.loadBrand(brandDir) : undefined;
   // Opt-in seed: a viewer with no saved client record on this dev origin starts
   // in the default relay's community. The legacy alias is presence-only; an
   // explicit dev setting wins (only "1" enables it). Builds never see it.
@@ -37,6 +42,7 @@ export default defineConfig(async ({ command, mode }) => {
       "BUZZ_DEV_OPEN_RELAY=1 requires BUZZ_RELAY_URL to name the community to open.",
     );
   const plugins: PluginOption[] = [react()];
+  if (brand) plugins.push(brandHost.brandPlugin(brand));
   if (command === "serve")
     plugins.push(
       (await import("./scripts/developer-settings.ts")).developerSettingsPlugin(
@@ -83,6 +89,7 @@ export default defineConfig(async ({ command, mode }) => {
         proxiedOrigin || (openRelay ? defaultOrigin : ""),
       ),
       "import.meta.env.VITE_BUZZ_PROXIED_RELAY": JSON.stringify(proxiedOrigin),
+      ...brandHost.brandDefines(brand),
     },
     ...(proxiedOrigin ? { base: "./" } : {}),
     clearScreen: false,

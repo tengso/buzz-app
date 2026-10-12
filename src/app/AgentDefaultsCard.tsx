@@ -24,9 +24,10 @@ import { Field } from "../shared/design-system/ui/Field";
 import { Input } from "../shared/design-system/ui/Input";
 import { Select } from "../shared/design-system/ui/Select";
 import styles from "./AgentSettings.module.css";
+import { BRAND_NAME } from "../shared/brand";
 
 const harnesses = [
-  { value: "buzz-agent", label: "Buzz Agent" },
+  { value: "buzz-agent", label: `${BRAND_NAME} Agent` },
   { value: "goose", label: "Goose" },
   { value: "pi", label: "Pi" },
 ] as const;

@@ -9,6 +9,7 @@ import { Input } from "../../shared/design-system/ui/Input";
 import type { TemplateProviders } from "../../features/channel-templates/provider";
 import { OwnedContribution } from "../../plugins/OwnedContribution";
 import styles from "./ChannelTemplates.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 export function ChannelGroupsDialog({
   open,
@@ -95,7 +96,7 @@ export function ChannelGroupsDialog({
         {!entry && (
           <>
             <p>
-              This activates separate new-Buzz groups. OG groups remain
+              This activates separate new-{BRAND_NAME} groups. OG groups remain
               untouched and will no longer be displayed here; later OG edits
               will not sync into this list.
             </p>

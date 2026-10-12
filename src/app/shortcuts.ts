@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isApplePlatform } from "../features/shortcuts/format";
 import type { ShortcutsService } from "../features/shortcuts/service";
 import type { Appearance } from "../shared/theme/service";
+import { BRAND_NAME } from "../shared/brand";
 
 /** Host actions use the same binding/dispatch rules as plugins, without fake plugin ownership. */
 // Settings presents the host category in functional sections: navigation,
@@ -81,7 +82,7 @@ export function registerAppShortcuts(
   remove.push(
     shortcuts.registerHost({
       id: "app-reload",
-      title: "Reload Buzz",
+      title: `Reload ${BRAND_NAME}`,
       binding: { key: "r", mod: true },
       order: HOST_SHORTCUT_ORDER.reload,
       allowInEditable: true,

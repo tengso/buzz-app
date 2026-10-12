@@ -1,5 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { Host } from "../../../features/host/service";
+import { BRAND_NAME } from "../../../shared/brand";
 
 export const browserLoginAvailable = () => isTauri();
 
@@ -12,7 +13,7 @@ export function oauthTarget(
     url = new URL(value);
   } catch {
     throw new Error(
-      "Builderlab sign-in is not configured for this Buzz build.",
+      `Builderlab sign-in is not configured for this ${BRAND_NAME} build.`,
     );
   }
   if (
@@ -23,7 +24,7 @@ export function oauthTarget(
     url.href.includes("#")
   )
     throw new Error(
-      "This Buzz build does not support the configured Builderlab sign-in address.",
+      `This ${BRAND_NAME} build does not support the configured Builderlab sign-in address.`,
     );
   return `${url.href.replace(/\/$/, "")}/api/goose`;
 }

@@ -1,12 +1,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { Button } from "../../../shared/design-system/ui/Button";
 import type { OAuthSession } from "../oauth/session";
+import { BRAND_NAME } from "../../../shared/brand";
 
 export function Login({
   session,
   available,
   active,
-  unavailableReason = "Open the Buzz desktop app to sign in with Builderlab.",
+  unavailableReason = `Open the ${BRAND_NAME} desktop app to sign in with Builderlab.`,
 }: {
   session: OAuthSession;
   available: boolean;
@@ -30,7 +31,7 @@ export function Login({
         <h2 className="text-heading text-primary">Builderlab</h2>
         <p className="mt-2 text-body-sm text-secondary">
           Connect your Builderlab account. Your credential stays in memory until
-          you sign out or close Buzz.
+          you sign out or close {BRAND_NAME}.
         </p>
       </div>
       {!available ? (
@@ -41,7 +42,7 @@ export function Login({
         <>
           <p role="status" className="text-body-sm text-secondary">
             {state.status === "pending"
-              ? "Finish sign-in in your browser, then return to Buzz."
+              ? `Finish sign-in in your browser, then return to ${BRAND_NAME}.`
               : state.account
                 ? state.account.email
                   ? `Signed in as ${state.account.email}.`

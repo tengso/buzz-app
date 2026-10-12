@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { PluginModule } from "../../plugins/api";
 import { InlineLink, linkKind } from "../links/InlineLink";
 import styles from "./LinkLab.module.css";
+import { BRAND_NAME } from "../../shared/brand";
 
 export const inject = ["pages"];
 export const apply: PluginModule["apply"] = (ctx) => {
@@ -115,7 +116,7 @@ function LinkLab() {
         </section>
         <section>
           <span className={styles.label}>
-            Buzz channels, messages and threads
+            {BRAND_NAME} channels, messages and threads
           </span>
           <p>
             Head back to {preview(general, "#general")} or pick up{" "}
@@ -142,7 +143,7 @@ function LinkLab() {
             label="Try a URL"
             error={
               !linkKind(url)
-                ? "Enter an HTTP, HTTPS, or supported Buzz link."
+                ? `Enter an HTTP, HTTPS, or supported ${BRAND_NAME} link.`
                 : undefined
             }
           >
