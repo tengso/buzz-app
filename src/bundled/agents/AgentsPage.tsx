@@ -32,6 +32,8 @@ import { PanelHeader } from "../../shared/design-system/ui/PanelHeader";
 import { FullPageSurface } from "../../shared/design-system/ui/FullPageSurface";
 import { sameCommunityAgents } from "../../features/agents/choices";
 import { AgentLibrary } from "./AgentLibrary";
+import { TeamAgents } from "./TeamAgents";
+import { browserHostEnabled } from "../../features/identity/browser";
 import { Button } from "../../shared/design-system/ui/Button";
 import { AgentCard, type ProfileResolver } from "./AgentCard";
 import { AgentControlPanel } from "./AgentControlPanel";
@@ -238,11 +240,19 @@ export function AgentsPage({
   }
   const library =
     connection.status === "ready" ? (
-      <AgentLibrary
-        key={`${connection.scope}:${connection.generation}`}
-        session={connection.session}
-        headerActions={headerActions}
-      />
+      browserHostEnabled() ? (
+        <TeamAgents
+          key={`${connection.scope}:${connection.generation}`}
+          session={connection.session}
+          headerActions={headerActions}
+        />
+      ) : (
+        <AgentLibrary
+          key={`${connection.scope}:${connection.generation}`}
+          session={connection.session}
+          headerActions={headerActions}
+        />
+      )
     ) : (
       <div>
         <p>Connect to a community to browse the old library.</p>

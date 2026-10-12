@@ -40,6 +40,7 @@ import {
   readRelayLibrary,
 } from "../agents/relay-library";
 import { createAgentLibrary } from "../agents/library";
+import { readTeamAgents } from "../agents/team-agents";
 import { createCommunityCatalog } from "../agents/catalog";
 import { archiveHides, createIdentityArchives } from "./identity-archives";
 import {
@@ -652,6 +653,12 @@ export function createRelaySession(
       ? inventoryReader(transport.readAgentLibrary, (signal) =>
           readRelayLibrary(requests.reader, transport.viewer, signal),
         )
+      : undefined,
+    notify,
+  );
+  const teamAgents = createAgentLibrary(
+    transport
+      ? (signal) => readTeamAgents(requests.reader, transport.viewer, signal)
       : undefined,
     notify,
   );
@@ -1860,6 +1867,7 @@ export function createRelaySession(
     profiles: profiles.queries,
     emoji: emoji.queries,
     statuses: statuses.queries,
+    teamAgents: teamAgents.queries,
     agentLibrary: agentLibrary.queries,
     communityCatalog: communityCatalog.queries,
     agentChoices,
@@ -2463,6 +2471,7 @@ export function createRelaySession(
         dropHintConfirmations();
         requests.invalidate();
         agentLibrary.clear();
+        teamAgents.clear();
         communityCatalog.clear();
         archives.clear();
         workflows.interrupt();
