@@ -213,7 +213,12 @@ signatures.
    long timeouts are required):
 
    ```nginx
-   location = /hti_research_team { return 301 /hti_research_team/; }
+   # absolute_redirect off: keep the Location relative, so the gateway can map it
+   # back under /HaiChat (nginx would otherwise send http://<vm>:<port>/...).
+   location = /hti_research_team {
+     absolute_redirect off;
+     return 301 /hti_research_team/;
+   }
    location /hti_research_team/ {
      proxy_pass http://<container-ip>:3190/;
      proxy_http_version 1.1;
