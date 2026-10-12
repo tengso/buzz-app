@@ -19,6 +19,7 @@ import { hostIdentityEnabled } from "../identity/service";
 import { readErrorKind } from "../relay/errors";
 import { createJoinJournal, type PendingJoin } from "./join-journal";
 import styles from "./Communities.module.css";
+import { isSecureOrLoopbackHref } from "../../shared/loopback";
 
 // Exact relay claim refusal codes, forwarded unchanged by the broker.
 const CLAIM_REFUSALS = {
@@ -233,7 +234,7 @@ export function CommunityDialog({
                 info?.name && info.name !== "Buzz Relay"
                   ? info.name
                   : destination.name,
-              ...(info?.icon?.startsWith("https://")
+              ...(info?.icon && isSecureOrLoopbackHref(info.icon)
                 ? { icon: info.icon }
                 : {}),
             },
@@ -344,7 +345,7 @@ export function CommunityDialog({
               <Field
                 label="Relay URL"
                 error={error || undefined}
-                description="Enter a wss:// or https:// relay address without a path. Continue contacts this relay using your Buzz identity; joining or publishing a profile requires a later step."
+                description="Enter a wss:// or https:// relay address without a path (ws:// or http:// only for 127.0.0.1 or localhost). Continue contacts this relay using your Buzz identity; joining or publishing a profile requires a later step."
               >
                 <Input
                   type="url"

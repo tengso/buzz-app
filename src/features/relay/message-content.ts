@@ -1,4 +1,5 @@
 import { fromMarkdown } from "mdast-util-from-markdown";
+import { isSecureOrLoopbackHref } from "../../shared/loopback";
 
 export const MAX_MARKDOWN_LENGTH = 100_000;
 export const MAX_MARKDOWN_DEPTH = 100;
@@ -17,10 +18,10 @@ export function safeLinkUrl(value: string): string | undefined {
   }
 }
 
-/** Projected attachments and imeta media stay HTTPS-only. */
+/** Projected attachments and imeta media stay HTTPS-only, except on loopback relays. */
 export function safeMessageUrl(value: string): string | undefined {
   const url = safeLinkUrl(value);
-  return url?.startsWith("https:") ? url : undefined;
+  return url && isSecureOrLoopbackHref(url) ? url : undefined;
 }
 
 type MarkdownNode = {

@@ -1,13 +1,17 @@
-/** A community is a secure origin, never a credential-bearing URL or an API path. */
+import { isLoopbackHost } from "../../shared/loopback";
+
+const RELAY_URL_ERROR =
+  "Enter a wss:// or https:// relay URL without credentials, a path, query, or fragment (ws:// or http:// only for 127.0.0.1 or localhost).";
+
+/** A community is a secure origin, never a credential-bearing URL or an API path.
+ * Plain ws/http is accepted only for loopback hosts (e.g. an SSH-tunnelled relay). */
 export function relayOrigin(input: string): string {
   const value = input.trim();
   if (
     value.length > 2048 ||
-    !/^(?:wss|https):\/\/[^/?#\\\s@]+\/?$/i.test(value)
+    !/^(?:wss|https|ws|http):\/\/[^/?#\\\s@]+\/?$/i.test(value)
   )
-    throw new Error(
-      "Enter a wss:// or https:// relay URL without credentials, a path, query, or fragment.",
-    );
+    throw new Error(RELAY_URL_ERROR);
   let url: URL;
   try {
     url = new URL(value);
@@ -16,7 +20,9 @@ export function relayOrigin(input: string): string {
       "Enter a valid relay URL, such as wss://relay.example.com.",
     );
   }
-  url.protocol = "https:";
+  const plain = /^(?:ws|http):/i.test(value);
+  if (plain && !isLoopbackHost(url.hostname)) throw new Error(RELAY_URL_ERROR);
+  url.protocol = plain ? "http:" : "https:";
   // DNS treats the final dot as the same host; keep storage and routing identical too.
   if (url.hostname.endsWith(".")) url.hostname = url.hostname.slice(0, -1);
   return url.origin;
