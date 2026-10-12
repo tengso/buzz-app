@@ -20,17 +20,24 @@ export type IdentityArchiveSnapshot = Readonly<{
 }>;
 export type IdentityArchives = ReturnType<
   typeof createIdentityArchives
->["queries"];
+>["queries"] & {
+  /** Host presentation rule: identities this host never shows. */
+  hidden?: (pubkey: string) => boolean;
+};
 
 /** Base Buzz discovery rule: known-archived identities leave forward-looking
  * choices, fail open while archive state is unknown, and never hide the viewer
  * from themself (NIP-IA archival stays visible to its subject). */
 export function archiveHides(
-  archives: Pick<IdentityArchives, "state"> | undefined,
+  archives: Pick<IdentityArchives, "state" | "hidden"> | undefined,
   pubkey: string,
   viewer: string | undefined,
 ) {
-  return pubkey !== viewer && archives?.state(pubkey) === "archived";
+  return (
+    pubkey !== viewer &&
+    (archives?.hidden?.(pubkey) === true ||
+      archives?.state(pubkey) === "archived")
+  );
 }
 const empty: readonly string[] = Object.freeze([]);
 const HEX = /^[0-9a-f]{64}$/;

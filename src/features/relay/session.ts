@@ -42,7 +42,17 @@ import {
 import { createAgentLibrary } from "../agents/library";
 import { readTeamAgents } from "../agents/team-agents";
 import { createCommunityCatalog } from "../agents/catalog";
-import { archiveHides, createIdentityArchives } from "./identity-archives";
+import {
+  archiveHides,
+  createIdentityArchives,
+  type IdentityArchives,
+} from "./identity-archives";
+import {
+  browserHidesDesktopDefaults,
+  createBuiltInAgents,
+  hidingBuiltInAgents,
+  isStarterChannel,
+} from "./browser-defaults";
 import {
   createReadState,
   browserReadPublisherLock,
@@ -682,12 +692,21 @@ export function createRelaySession(
     notify,
     { writer: transport?.identityArchive, viewer: transport?.viewer },
   );
+  // The browser host never shows desktop's starter channels or built-in agents.
+  const hideDefaults = !!transport && browserHidesDesktopDefaults();
+  const builtInAgents = createBuiltInAgents(
+    hideDefaults ? requests.reader : undefined,
+    notify,
+  );
+  const visibleArchives: IdentityArchives = hideDefaults
+    ? hidingBuiltInAgents(archives.queries, builtInAgents.queries)
+    : archives.queries;
   const agentChoices = createAgentChoices({
     // Offline sessions keep their historical, never-matching agent scope.
     scope: transport ? transportPartition(transport) : "undefined:undefined",
     library: agentLibrary.queries,
     native: options.agentChoices,
-    archives: archives.queries,
+    archives: visibleArchives,
     signal: lifetime.signal,
   });
   const nameSource = {
@@ -844,6 +863,55 @@ export function createRelaySession(
       };
     },
   });
+  let defaultsSource: ChannelList | undefined;
+  let defaultsKeys: ReadonlySet<string> | undefined;
+  let defaultsList: ChannelList | undefined;
+  const visibleChannelQueries = hideDefaults
+    ? Object.freeze({
+        ...channelQueries,
+        list() {
+          const snapshot = channelQueries.list();
+          const keys = builtInAgents.queries.keys();
+          if (
+            !defaultsList ||
+            snapshot !== defaultsSource ||
+            keys !== defaultsKeys
+          ) {
+            defaultsSource = snapshot;
+            defaultsKeys = keys;
+            const viewer = transport?.viewer;
+            const shown = snapshot.channels.filter(
+              (channel) =>
+                !isStarterChannel(channel) &&
+                !(
+                  channel.channelType === "dm" &&
+                  channel.members?.some((member) => keys.has(member)) &&
+                  channel.members.every(
+                    (member) => member === viewer || keys.has(member),
+                  )
+                ),
+            );
+            defaultsList =
+              shown.length === snapshot.channels.length
+                ? snapshot
+                : Object.freeze({
+                    ...snapshot,
+                    channels: Object.freeze(shown),
+                  });
+          }
+          return defaultsList;
+        },
+        subscribeList(listener: () => void) {
+          void builtInAgents.queries.ensure();
+          const offChannels = channelQueries.subscribeList(listener);
+          const offBuiltIn = builtInAgents.queries.subscribe(listener);
+          return () => {
+            offChannels();
+            offBuiltIn();
+          };
+        },
+      })
+    : channelQueries;
   const readScope = transport
     ? transportPartition(transport)
     : relayPartition("offline", "");
@@ -1136,7 +1204,7 @@ export function createRelaySession(
       selectable: () =>
         agentChoices.snapshot().selectable.map((agent) => agent.pubkey),
       archived: (pubkey) =>
-        archiveHides(archives.queries, pubkey, transport?.viewer),
+        archiveHides(visibleArchives, pubkey, transport?.viewer),
     },
     transport?.relayAuthor,
     { read: (filters, settings) => readVerified(filters, settings, false) },
@@ -1868,7 +1936,7 @@ export function createRelaySession(
       views.set(dispose, thread.purge);
       return { ...thread.view, dispose };
     },
-    channels: channelQueries,
+    channels: visibleChannelQueries,
     names: identityNames,
     profiles: profiles.queries,
     emoji: emoji.queries,
@@ -1899,7 +1967,7 @@ export function createRelaySession(
     agentActivity: activity.queries,
     agentManagement: activity.management,
     agentMemories: memories.capability,
-    archives: archives.queries,
+    archives: visibleArchives,
     media: (url: string, size?: "small") => transport?.media(url, size),
     /** A plugin may request writes from this same interface when the host supports them. */
     outbox: writes?.outbox,
@@ -2480,6 +2548,7 @@ export function createRelaySession(
         teamAgents.clear();
         communityCatalog.clear();
         archives.clear();
+        builtInAgents.clear();
         workflows.interrupt();
         channels.staleHeads();
         unread.stale();
@@ -2646,6 +2715,7 @@ export function createRelaySession(
         statuses.clear();
         agentLibrary.clear();
         archives.clear();
+        builtInAgents.clear();
         workflows.clear();
         const results = await Promise.allSettled([
           channels.clearCache(),
@@ -2697,6 +2767,7 @@ export function createRelaySession(
       agentLibrary.dispose();
       communityCatalog.dispose();
       archives.dispose();
+      builtInAgents.dispose();
     },
     retainedChannels: channels.retainedChannels,
     diagnostics: () => ({
