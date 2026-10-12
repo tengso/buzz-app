@@ -1,6 +1,18 @@
 import { verifyEvent, type EventTemplate } from "nostr-tools";
 import { communityDestination } from "../communities/destination";
-import { browserViewer, nip07 } from "../identity/browser";
+import {
+  browserSelfCipher,
+  browserSignEvent,
+  browserViewer,
+} from "../identity/browser";
+import {
+  browserChannelKit,
+  browserReadSnapshot,
+  browserReadState,
+  browserSidebarCodec,
+} from "./browser-private";
+import { nativeSidebar } from "./native-sidebar";
+import { readSnapshotCommunity } from "./read-state-snapshot";
 import { eventDto, type RelayEvent } from "./events";
 import { nativeWriteKinds } from "./native";
 import {
@@ -36,14 +48,14 @@ async function sha256Hex(data: BufferSource) {
 async function sign(event: EventTemplate) {
   const viewer = await browserViewer();
   const { kind, created_at, tags, content } = event;
-  const signed = await (await nip07()).signEvent({
+  const signed = await browserSignEvent({
     kind,
     created_at,
     tags,
     content,
   });
   if (!signed || signed.pubkey !== viewer || !verifyEvent({ ...signed }))
-    throw new Error("The signer extension returned an invalid signature.");
+    throw new Error("The signer returned an invalid signature.");
   return eventDto(signed);
 }
 
@@ -509,8 +521,32 @@ export async function connectBrowserTransport(
       return publishEvent(event, signal);
     },
   });
+  const cipher = browserSelfCipher();
+  const request = (path: string, body: unknown, signal?: AbortSignal) =>
+    browserRelayRequest(origin, path, body, signal);
+  const readCommunity = readSnapshotCommunity(info.read_state_snapshot);
+  const privateRecords = cipher
+    ? {
+        ...nativeSidebar(transport, browserSidebarCodec(cipher, viewer, sign)),
+        readState: browserReadState(
+          cipher,
+          viewer,
+          sign,
+          request,
+          readCommunity,
+        ),
+        ...(readCommunity
+          ? {
+              readStateSnapshot: (signal: AbortSignal) =>
+                browserReadSnapshot(request, viewer, readCommunity, signal),
+            }
+          : {}),
+        channelKit: browserChannelKit(cipher, viewer, origin),
+      }
+    : {};
   return {
     ...transport,
+    ...privateRecords,
     archiveAuthority: author,
     channelLifecycle: commandWriter(validateLifecycleTemplate),
     channelDetails: commandWriter(validateDetailsTemplate),

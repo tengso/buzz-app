@@ -35,16 +35,33 @@ const cancelled = (signal: AbortSignal) => signal.throwIfAborted();
 const same = (a: unknown, b: unknown) =>
   JSON.stringify(a) === JSON.stringify(b);
 
-export function nativeSidebar(transport: ReadTransport) {
+/** Purpose-bound self-encrypted sidebar codec: native IPC or the browser key. */
+export type SidebarCodec = {
+  decode(events: readonly RelayEvent[]): Promise<Record<string, unknown>>;
+  sign(
+    coordinate: string,
+    payload: Record<string, unknown>,
+    createdAt: number,
+  ): Promise<unknown>;
+};
+const nativeSidebarCodec: SidebarCodec = {
+  decode: (events) =>
+    invoke<Record<string, unknown>>("relay_decode_sidebar", { events }),
+  sign: (coordinate, payload, createdAt) =>
+    invoke<unknown>("relay_sign_sidebar", { coordinate, payload, createdAt }),
+};
+
+export function nativeSidebar(
+  transport: ReadTransport,
+  codec: SidebarCodec = nativeSidebarCodec,
+) {
   const viewer = transport.viewer;
   const writer = transport.writer;
   // Session store serializes its writers. A separate session or device can still race
   // this whole-record read/replace; readback verifies the requested intent only.
   async function decode(events: readonly RelayEvent[], signal: AbortSignal) {
     cancelled(signal);
-    const raw = await invoke<Record<string, unknown>>("relay_decode_sidebar", {
-      events,
-    });
+    const raw = await codec.decode(events);
     cancelled(signal);
     return projectSidebarPreferences(
       raw["channel-sections"],
@@ -72,9 +89,7 @@ export function nativeSidebar(transport: ReadTransport) {
     );
     cancelled(signal);
     if (!events.length) return { payload: empty(coordinate), createdAt: 0 };
-    const raw = await invoke<Record<string, unknown>>("relay_decode_sidebar", {
-      events,
-    });
+    const raw = await codec.decode(events);
     cancelled(signal);
     const payload = raw[coordinate];
     if (!payload || typeof payload !== "object" || Array.isArray(payload))
@@ -127,14 +142,11 @@ export function nativeSidebar(transport: ReadTransport) {
     )
       throw new Error("Sidebar plaintext budget exceeded");
     const event = eventDto(
-      await invoke<unknown>("relay_sign_sidebar", {
+      await codec.sign(
         coordinate,
-        payload: draft.next,
-        createdAt: Math.max(
-          Math.floor(Date.now() / 1000),
-          current.createdAt + 1,
-        ),
-      }),
+        draft.next,
+        Math.max(Math.floor(Date.now() / 1000), current.createdAt + 1),
+      ),
     );
     cancelled(signal);
     if (!writer) throw new Error("Native relay writer is unavailable");

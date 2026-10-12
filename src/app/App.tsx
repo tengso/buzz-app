@@ -1,5 +1,10 @@
 // FOUNDATION: Startup, navigation, contributed pages, and built-in Settings.
 import { IdentitySetup } from "../features/identity/IdentitySetup";
+import { BrowserIdentitySetup } from "../features/identity/BrowserIdentitySetup";
+import {
+  browserHostEnabled,
+  type BrowserIdentity,
+} from "../features/identity/browser";
 import { MeSidebar } from "../bundled/me/MeSidebar";
 import { ChannelSidebar } from "../features/channel-navigation/ChannelSidebar";
 import { ChannelNavigationProvider } from "../features/channel-navigation/ChannelNavigationState";
@@ -38,7 +43,8 @@ export function App({ services }: { services: AppServices }) {
     if (!identity) return;
     const update = () => {
       const status = identity.snapshot().status;
-      if (status === "missing" || status === "error") setLaunchReady(true);
+      if (status === "missing" || status === "locked" || status === "error")
+        setLaunchReady(true);
       else if (status === "loading") setLaunchReady(false);
     };
     update();
@@ -47,7 +53,11 @@ export function App({ services }: { services: AppServices }) {
   return (
     <>
       <LaunchWindowControls />
-      {services.identity ? (
+      {services.identity && browserHostEnabled() ? (
+        <BrowserIdentitySetup identity={services.identity as BrowserIdentity}>
+          <ConnectedApp services={services} />
+        </BrowserIdentitySetup>
+      ) : services.identity ? (
         <IdentitySetup identity={services.identity}>
           <ConnectedApp services={services} />
         </IdentitySetup>

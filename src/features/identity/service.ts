@@ -4,6 +4,7 @@ import { browserHostEnabled } from "./browser";
 export type IdentitySnapshot =
   | { status: "loading" }
   | { status: "missing"; busy: boolean; error?: string }
+  | { status: "locked"; busy: boolean; error?: string }
   | { status: "error"; error: string }
   | { status: "ready"; viewer: string };
 
