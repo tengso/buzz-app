@@ -658,7 +658,13 @@ export function createRelaySession(
   );
   const teamAgents = createAgentLibrary(
     transport
-      ? (signal) => readTeamAgents(requests.reader, transport.viewer, signal)
+      ? (signal) =>
+          readTeamAgents(
+            requests.reader,
+            transport.viewer,
+            transport.relayAuthor,
+            signal,
+          )
       : undefined,
     notify,
   );

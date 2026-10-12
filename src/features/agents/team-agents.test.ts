@@ -19,14 +19,28 @@ const register = (owner: Uint8Array, agent: string, name: string) =>
   ) as unknown as RelayEvent;
 
 describe("readTeamAgents", () => {
-  it("lists only the agents that register a team, then their team", async () => {
+  it("lists the owner's team to any member, without old agents", async () => {
+    const relay = key();
+    const owner = key();
     const viewer = key();
     const coa = key();
     const old = key();
     const worker = key();
     const events = [
-      register(viewer.secret, coa.pubkey, "Chief of Agents"),
-      register(viewer.secret, old.pubkey, "Fizz"),
+      finalizeEvent(
+        {
+          kind: 13534,
+          created_at: 1_700_000_000,
+          tags: [
+            ["member", owner.pubkey, "owner"],
+            ["member", viewer.pubkey, "member"],
+          ],
+          content: "",
+        },
+        relay.secret,
+      ) as unknown as RelayEvent,
+      register(owner.secret, coa.pubkey, "Chief of Agents"),
+      register(owner.secret, old.pubkey, "Fizz"),
       register(coa.secret, worker.pubkey, "Builder"),
     ];
     const reader = {
@@ -38,6 +52,7 @@ describe("readTeamAgents", () => {
     const team = await readTeamAgents(
       reader,
       viewer.pubkey,
+      relay.pubkey,
       new AbortController().signal,
     );
     expect(team.identities).toEqual([

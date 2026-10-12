@@ -93,7 +93,7 @@ export function TeamAgents({
               ))}
             </div>
           ) : (
-            <p>No agent team is registered to you in this community.</p>
+            <p>No agent team is registered in this community.</p>
           )}
           <p className="m-0 text-body-sm text-secondary">
             Ask {lead ? label(lead) : "the team lead"} in chat to create, stop
