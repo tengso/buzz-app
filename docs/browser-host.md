@@ -168,6 +168,78 @@ relay 127.0.0.1:3100          (team-builder --bind/--port)
 5. Open `http://127.0.0.1:3102` (not `localhost`), then add the community
    `http://127.0.0.1:3102` with **+**.
 
+## Behind a path-prefixed login gateway (HaiChat)
+
+For browsers outside the firewall, the same team-builder relay can be reached
+through the corporate login gateway. The gateway serves each app under a path and
+strips its own prefix, and the cloud VM's nginx then strips the app path:
+
+```text
+workstation browser https://et2.htisec.com/HaiChat/hti_research_team/
+   │ gateway login (cookie), strips /HaiChat
+   ▼
+cloud VM nginx  location /hti_research_team/ → proxy_pass http://<container>:3190/;
+   ▼
+LXD container nginx :3190     (browser-host.gateway.nginx.conf: app + relay)
+   ▼
+relay 127.0.0.1:3100          (team-builder --bind/--port, advertised ws://127.0.0.1:3102)
+```
+
+Nothing in the relay or team-builder changes. The browser keeps signing for the
+relay's advertised URL (NIP-42 `relay` tag `ws://127.0.0.1:3102`, NIP-98 `u`
+`http://127.0.0.1:3102/…`, Blossom `server` `127.0.0.1:3102`), exactly like the
+desktop app over the SSH tunnel. It sends every request, socket and media read
+to its own page URL, with the gateway's cookie. The container nginx sets
+`Host: 127.0.0.1:3102`, so the relay finds the community and accepts those
+signatures.
+
+1. Build with `BUZZ_PROXIED_RELAY_URL` set to the relay's advertised URL. This
+   makes the asset paths relative, routes relay traffic to the page's own path,
+   and opens that community automatically:
+
+   ```bash
+   BUZZ_HOST=browser BUZZ_PROXIED_RELAY_URL=ws://127.0.0.1:3102 \
+     pnpm exec vite build --outDir dist-gateway --emptyOutDir
+   sudo rsync -a --delete dist-gateway/ /srv/buzz-web-gateway/
+   ```
+
+   This is a separate build. The SSH-tunnel build (`BUZZ_RELAY_URL`) and its nginx
+   site keep working unchanged next to it.
+2. In the container, install
+   [`browser-host.gateway.nginx.conf`](browser-host.gateway.nginx.conf). Set the
+   relay's `--bind:--port` in `proxy_pass` and its advertised `host:port` in
+   `proxy_set_header Host`.
+3. On the cloud VM, add a block next to the existing apps (WebSocket upgrade and
+   long timeouts are required):
+
+   ```nginx
+   location = /hti_research_team { return 301 /hti_research_team/; }
+   location /hti_research_team/ {
+     proxy_pass http://<container-ip>:3190/;
+     proxy_http_version 1.1;
+     proxy_set_header Upgrade $http_upgrade;
+     proxy_set_header Connection "Upgrade";
+     proxy_set_header Host $host;
+     proxy_set_header X-Real-IP $remote_addr;
+     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+     proxy_set_header X-Forwarded-Proto $scheme;
+     proxy_read_timeout 1d;
+     proxy_send_timeout 1d;
+     client_max_body_size 200m;
+     proxy_buffering off;
+     proxy_request_buffering off;
+   }
+   ```
+
+4. Register `hti_research_team` with the gateway, the same way as the Streamlit
+   apps. Its proxy must pass WebSocket upgrades and allow uploads of up to 200 MB.
+5. Open `https://et2.htisec.com/HaiChat/hti_research_team/` (with the trailing
+   slash), log in to the gateway, then sign in to Buzz with your key.
+
+The gateway login is the outer gate only. Each user still signs in to Buzz with
+their own Nostr key. When the gateway session expires, relay requests fail until
+the page is reloaded and the user logs in again.
+
 ## Limitations
 
 - Saved groups, stars and "Me" placement need the local key or an extension with
