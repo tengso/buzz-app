@@ -265,9 +265,11 @@ dashboard as a **Mission Control** page in the sidebar, with all of its features
    [`browser-host.gateway.nginx.conf`](browser-host.gateway.nginx.conf) or
    [`browser-host.loopback.nginx.conf`](browser-host.loopback.nginx.conf) and set
    its `proxy_pass` to the dashboard's `--bind:--port` (default `127.0.0.1:3101`).
-   It serves the dashboard at `<app>/dashboard/` on the app's own origin, and the
-   app's Content-Security-Policy allows framing it (`frame-src 'self'`). Nothing
-   changes on the cloud VM or the gateway: the dashboard is under the app's path.
+   It serves the dashboard at `<app>/dashboard/` on the app's own origin. In an
+   existing site, also change `frame-src 'none'` to `frame-src 'self'` in the
+   `$buzz_csp` line; otherwise the browser blocks the frame and the page says so.
+   Nothing changes on the cloud VM or the gateway: the dashboard is under the
+   app's path.
 3. Open the app and choose **Mission Control** in the sidebar. Every member sees
    the page; Mission Control decides who gets in.
 
