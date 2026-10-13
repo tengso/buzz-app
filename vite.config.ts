@@ -24,6 +24,10 @@ export default defineConfig(async ({ command, mode }) => {
   const proxiedOrigin = proxiedRelay ? relayOrigin(proxiedRelay) : "";
   if (proxiedOrigin && env.BUZZ_HOST !== "browser")
     throw new Error("BUZZ_PROXIED_RELAY_URL requires BUZZ_HOST=browser.");
+  // Mission Control page: team-builder's dashboard proxied at <app>/dashboard/.
+  const missionControl = env.BUZZ_MISSION_CONTROL === "1";
+  if (missionControl && env.BUZZ_HOST !== "browser")
+    throw new Error("BUZZ_MISSION_CONTROL requires BUZZ_HOST=browser.");
   const brandDir = env.BUZZ_BRAND_DIR?.trim();
   if (brandDir && env.BUZZ_HOST !== "browser")
     throw new Error("BUZZ_BRAND_DIR requires BUZZ_HOST=browser.");
@@ -89,6 +93,9 @@ export default defineConfig(async ({ command, mode }) => {
         proxiedOrigin || (openRelay ? defaultOrigin : ""),
       ),
       "import.meta.env.VITE_BUZZ_PROXIED_RELAY": JSON.stringify(proxiedOrigin),
+      "import.meta.env.VITE_BUZZ_MISSION_CONTROL": JSON.stringify(
+        missionControl ? "1" : "",
+      ),
       ...brandHost.brandDefines(brand),
     },
     ...(proxiedOrigin ? { base: "./" } : {}),

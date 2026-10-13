@@ -7,6 +7,7 @@ import {
   FolderSimpleIcon,
   GearIcon,
   LightningIcon,
+  MonitorIcon,
   RobotIcon,
 } from "../../shared/design-system/icons/index";
 import type { RegisteredPage } from "../../features/pages/service";
@@ -51,6 +52,7 @@ const bundledIcons = new Map<string, typeof BrowserIcon>([
   ["buzz.projects/projects", FolderSimpleIcon],
   ["buzz.agents/agents", RobotIcon],
   ["buzz.workflows/workflows", LightningIcon],
+  ["buzz.mission-control/mission-control", MonitorIcon],
 ]);
 type PagePresentation = Readonly<{
   label: string;
