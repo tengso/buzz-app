@@ -7,6 +7,7 @@ import {
   FolderSimpleIcon,
   GearIcon,
   LightningIcon,
+  LinkIcon,
   MonitorIcon,
   RobotIcon,
 } from "../../shared/design-system/icons/index";
@@ -63,7 +64,9 @@ type PagePresentation = Readonly<{
 export function pagePresentation(page: RegisteredPage): PagePresentation {
   if (page.key === "buzz.channels/channels") return shellPresentation.channels;
   const tone = page.layout === "workspace" ? "lime" : "sky";
-  const bundledIcon = bundledIcons.get(page.key);
+  const bundledIcon =
+    bundledIcons.get(page.key) ??
+    (page.key.startsWith("buzz.app-links/") ? LinkIcon : undefined);
   if (bundledIcon) return { label: page.title, icon: bundledIcon, tone };
   return {
     label: page.title,

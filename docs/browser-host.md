@@ -289,6 +289,35 @@ Content-Security-Policies of both, and only serve this behind the gateway login
 or a private SSH tunnel. Mission Control's own warning applies: revealed secrets
 travel to the browser, so over the gateway they are protected by its HTTPS only.
 
+## Apps in the sidebar
+
+Web builds can show other web apps on the same site (for example the other
+`/HaiChat/<app>/` apps behind the gateway) as pages in the sidebar. Each app
+opens in the main window; its header has **Open in new tab** and **Reload**.
+
+Manage them in **Settings → Apps**:
+
+- **Community apps** are chosen by the community owner (the relay roster's
+  `owner`) and shown to every member. They are stored as a public kind-30078
+  event with `d=buzz.app-links`, signed by the owner. Members see them read-only.
+- **My apps** are each user's own. They are NIP-44 encrypted to the user's key
+  (kind 30078, `d=buzz.app-links.private`), so they follow the user to other
+  browsers. This needs the local key or a signer extension with NIP-44.
+- An address must be on the app's own origin: a path such as
+  `/HaiChat/my_app/`, or a full address on the same host. Other sites are
+  refused; open them in their own tab instead. The app's own server must allow
+  being framed (no `X-Frame-Options: DENY` or `frame-ancestors 'none'`), and the
+  web host's CSP must allow `frame-src 'self'` (the nginx examples do).
+- **Trusted** is off by default. Untrusted apps run in a sandbox without
+  `allow-same-origin`: they cannot read this page's storage or the unlocked
+  key, but they also run with an opaque origin, so apps that rely on the
+  gateway's login cookie or same-origin WebSockets (Streamlit, for example) may
+  not work framed. Use **Open in new tab** for those, or mark the app Trusted
+  if you fully trust it: a trusted app runs as an ordinary same-origin page,
+  and any script in it could read the unlocked key.
+- Up to 20 apps per list. A list another client cannot fully read keeps the
+  entries it understands.
+
 ## Branding
 
 A browser build can carry your own name and images instead of Buzz's. Put them
