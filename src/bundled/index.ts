@@ -57,6 +57,8 @@ import moderationManifest from "./moderation/manifest.json";
 import * as moderation from "./moderation";
 import missionControlManifest from "./mission-control/manifest.json";
 import * as missionControl from "./mission-control";
+import appLinksManifest from "./app-links/manifest.json";
+import * as appLinks from "./app-links";
 
 export const bundledPlugins: readonly BundledPlugin[] = [
   {
@@ -202,6 +204,11 @@ export const bundledPlugins: readonly BundledPlugin[] = [
   {
     manifest: { ...missionControlManifest, apiVersion: 1 },
     module: missionControl,
+    enabledByDefault: true,
+  },
+  {
+    manifest: { ...appLinksManifest, apiVersion: 1 },
+    module: appLinks,
     enabledByDefault: true,
   },
 ];
