@@ -245,6 +245,48 @@ The gateway login is the outer gate only. Each user still signs in to Buzz with
 their own Nostr key. When the gateway session expires, relay requests fail until
 the page is reloaded and the user logs in again.
 
+## Mission Control (team-builder)
+
+A browser build can show team-builder's
+[Mission Control](https://github.com/tengso/triflection-team-builder/blob/main/docs/user-guide.md#6-skills-mcp-connections-and-the-configuration-editor)
+dashboard as a **Mission Control** page in the sidebar, with all of its features
+(agents, deployments, profiles and secrets, logs, restarts). Needs team-builder
+0.8.11 or later, with the dashboard enabled (`team-builder dashboard enable`).
+
+1. Build with `BUZZ_MISSION_CONTROL=1` (with `BUZZ_HOST=browser`), next to the
+   other build variables:
+
+   ```bash
+   BUZZ_HOST=browser BUZZ_PROXIED_RELAY_URL=ws://127.0.0.1:3102 BUZZ_MISSION_CONTROL=1 \
+     pnpm exec vite build --outDir dist-gateway --emptyOutDir
+   ```
+
+2. Keep the `location /dashboard/` block of
+   [`browser-host.gateway.nginx.conf`](browser-host.gateway.nginx.conf) or
+   [`browser-host.loopback.nginx.conf`](browser-host.loopback.nginx.conf) and set
+   its `proxy_pass` to the dashboard's `--bind:--port` (default `127.0.0.1:3101`).
+   It serves the dashboard at `<app>/dashboard/` on the app's own origin, and the
+   app's Content-Security-Policy allows framing it (`frame-src 'self'`). Nothing
+   changes on the cloud VM or the gateway: the dashboard is under the app's path.
+3. Open the app and choose **Mission Control** in the sidebar. Every member sees
+   the page; Mission Control decides who gets in.
+
+Sign-in: the community owner needs no separate password. Mission Control issues a
+single-use challenge, and this page signs it with the viewer's key: a kind-27235
+event with the tags `u=mission-control`, `method=POST` and `challenge`. It signs
+nothing else, and only for its own Mission Control frame. Mission Control accepts
+the signature only from the owner key of its installation, within two minutes,
+once. Revealing a secret asks for a new signature in the same way. With a signer
+extension, each signature may prompt. Other members, or an owner who prefers it,
+can still use the dashboard's access key. The dashboard signs out after 8 hours;
+the page then signs in again on its own.
+
+Trade-off: the dashboard shares the app's origin, so a script running in either
+can use the other's session and the unlocked key. Keep the strict
+Content-Security-Policies of both, and only serve this behind the gateway login
+or a private SSH tunnel. Mission Control's own warning applies: revealed secrets
+travel to the browser, so over the gateway they are protected by its HTTPS only.
+
 ## Branding
 
 A browser build can carry your own name and images instead of Buzz's. Put them

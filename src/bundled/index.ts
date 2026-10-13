@@ -55,6 +55,8 @@ import sessionsManifest from "./sessions/manifest.json";
 import * as sessions from "./sessions";
 import moderationManifest from "./moderation/manifest.json";
 import * as moderation from "./moderation";
+import missionControlManifest from "./mission-control/manifest.json";
+import * as missionControl from "./mission-control";
 
 export const bundledPlugins: readonly BundledPlugin[] = [
   {
@@ -195,6 +197,11 @@ export const bundledPlugins: readonly BundledPlugin[] = [
   {
     manifest: { ...moderationManifest, apiVersion: 1 },
     module: moderation,
+    enabledByDefault: true,
+  },
+  {
+    manifest: { ...missionControlManifest, apiVersion: 1 },
+    module: missionControl,
     enabledByDefault: true,
   },
 ];
