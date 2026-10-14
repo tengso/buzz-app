@@ -121,6 +121,9 @@ export function ResizeHandle({
               ? panel.getBoundingClientRect().width
               : renderedWidth,
         };
+        // Keep receiving the drag over framed pages (Mission Control, apps),
+        // whose documents would otherwise take the pointer events.
+        event.currentTarget.setPointerCapture?.(event.pointerId);
         window.addEventListener("pointermove", move);
         window.addEventListener("pointerup", finish, { once: true });
         window.addEventListener("pointercancel", finish, { once: true });
