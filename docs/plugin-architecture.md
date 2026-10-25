@@ -55,6 +55,7 @@ features/agents/        app-owned control capability; separate session-owned lib
 bundled/github/         builtin GitHub panel plugin
 bundled/bestie/         builtin Bestie page
 bundled/inbox/          builtin Inbox page for unread conversations and mentions
+bundled/keel/           Keel record panel, task page and settings (docs/keel.md)
 ```
 
 The host composes the channel sidebar beside independently mounted pages, with

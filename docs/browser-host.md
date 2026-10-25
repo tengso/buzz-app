@@ -245,6 +245,15 @@ The gateway login is the outer gate only. Each user still signs in to Buzz with
 their own Nostr key. When the gateway session expires, relay requests fail until
 the page is reloaded and the user logs in again.
 
+## Keel (the governed record)
+
+The app ships a **Keel** page and panel ([`docs/keel.md`](keel.md)): tasks and
+objects of a [Keel](https://github.com/tengso/keel) deployment, read from its
+Gateway as the viewer, and decisions sent as signed replies in the task's thread.
+Keep the `location /keel/` block of
+[`browser-host.gateway.nginx.conf`](browser-host.gateway.nginx.conf) pointed at
+`osym serve` so the Gateway is under the app's origin; no CSP change is needed.
+
 ## Mission Control (team-builder)
 
 A browser build can show team-builder's
