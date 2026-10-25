@@ -251,3 +251,15 @@ it("bounds repeated unfinished wrappers while retaining a later valid link", () 
     expect(parts.map((part) => part.text).join("")).toBe(`${prefix} Docs`);
   }
 });
+
+it("recognizes keel:// record references, bare or wrapped, and keeps trailing punctuation out", () => {
+  const url = "keel://task/task-84450d5a33";
+  for (const text of [url, `<${url}>`]) {
+    const parts = messageLinkParts(`Please decide ${text}.`);
+    expect(parts.filter((part) => part.url)).toEqual([{ text: url, url }]);
+    expect(parts.map((part) => part.text).join("")).toBe(
+      `Please decide ${url}.`,
+    );
+  }
+  expect(messageLinkParts("keel://").some((part) => part.url)).toBe(false);
+});

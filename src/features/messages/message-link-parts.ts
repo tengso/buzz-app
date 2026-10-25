@@ -5,11 +5,15 @@ type LinkPart = { text: string; url?: string; label?: string };
 function validUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "buzz:"
-      ? !!parseBuzzLink(url)
-      : (parsed.protocol === "https:" || parsed.protocol === "http:") &&
-          !parsed.username &&
-          !parsed.password;
+    if (parsed.protocol === "buzz:") return !!parseBuzzLink(url);
+    // keel://<task|type>/<id>: a reference into the governed record, opened by its panel.
+    if (parsed.protocol === "keel:")
+      return !!parsed.hostname && !parsed.username && !parsed.password;
+    return (
+      (parsed.protocol === "https:" || parsed.protocol === "http:") &&
+      !parsed.username &&
+      !parsed.password
+    );
   } catch {
     return false;
   }
@@ -96,7 +100,7 @@ export function messageLinkParts(
   const parts: LinkPart[] = [];
   let offset = 0;
   for (const match of content.matchAll(
-    /(?<!\\)\[((?:\\[^\r\n]|[^[\]\\\r\n])+)\]\\?\(|<(?:https?|buzz):\/\/[^\s<>"`]+>|(?:https?|buzz):\/\/[^\s<>"`]+/gi,
+    /(?<!\\)\[((?:\\[^\r\n]|[^[\]\\\r\n])+)\]\\?\(|<(?:https?|buzz|keel):\/\/[^\s<>"`]+>|(?:https?|buzz|keel):\/\/[^\s<>"`]+/gi,
   )) {
     if (match.index < offset) continue;
     if (match[1] !== undefined) {
