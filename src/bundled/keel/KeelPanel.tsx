@@ -564,6 +564,32 @@ export function TaskCard({
                     : ""}
                 </q>
               )}
+              {(candidate.reviews ?? []).map((review) => (
+                <span
+                  key={review.reviewer}
+                  className="text-body-sm"
+                  aria-label={`${review.reviewer} ${review.verdict}`}
+                >
+                  <span
+                    className={
+                      review.verdict === "object" ? "error" : "text-muted"
+                    }
+                  >
+                    {review.verdict === "object" ? "Objects" : "Concurs"}
+                  </span>{" "}
+                  <span className="text-muted">{review.reviewer}:</span>{" "}
+                  {review.reason}
+                  {review.evidence?.source?.excerpt && (
+                    <q className="text-muted">
+                      {" "}
+                      {review.evidence.source.excerpt}
+                      {review.evidence.source.page
+                        ? ` (p. ${review.evidence.source.page})`
+                        : ""}
+                    </q>
+                  )}
+                </span>
+              ))}
             </li>
           ))}
         </ol>

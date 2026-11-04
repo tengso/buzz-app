@@ -178,6 +178,15 @@ export type KeelProposal = {
   evidence?: {
     source?: { document?: string; page?: number; excerpt?: string } | null;
   } | null;
+  /** Opinions on the proposal (agents and people); reviewing never decides. */
+  reviews?: {
+    reviewer: string;
+    verdict: "concur" | "object";
+    reason: string;
+    evidence?: {
+      source?: { document?: string; page?: number; excerpt?: string } | null;
+    } | null;
+  }[];
 };
 
 export type KeelObject = {
