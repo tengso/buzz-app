@@ -12,6 +12,12 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { InboxDetail } from "./InboxDetail";
+import {
+  ChannelNavigationProvider,
+  useChannelNavigation,
+} from "../../features/channel-navigation/ChannelNavigationState";
+import type { RelayData, RelaySnapshot } from "../../features/relay/service";
+import type { Panels } from "../../features/panels/service";
 import type { ComposerInputElement } from "../../features/messages/composer-dom";
 import { composerDOMFixture } from "../../features/messages/composer-testing";
 import { createRelaySession } from "../../features/relay/session";
@@ -113,14 +119,14 @@ async function frame() {
     for (const callback of pending) callback(performance.now());
   });
 }
-async function fixture() {
+async function fixture(extra = "") {
   const viewer = keypair(),
     alice = keypair(),
     relay = keypair();
   const root = message(
     alice,
     "room",
-    "Selected addressed body\n\nhttps://fixture.test/video.mp4",
+    `Selected addressed body${extra}\n\nhttps://fixture.test/video.mp4`,
     20,
     [
       ["p", viewer.pubkey],
@@ -721,4 +727,65 @@ it("does not restore a control retired by withholding, even when a replacement m
   } finally {
     gate.gate.resolve();
   }
+});
+
+it("opens a link only a panel can show in the conversation, with that panel", async () => {
+  const h = await fixture(" keel://task/task-0123456789");
+  await h.session.inboxFeed.ensure();
+  const snapshot = {
+    status: "ready",
+    scope: "community:viewer",
+    viewer: "viewer",
+    generation: 1,
+    session: h.session,
+  } as unknown as RelaySnapshot;
+  const relay = {
+    snapshot: () => snapshot,
+    subscribe: () => () => {},
+  } as unknown as RelayData;
+  const opened: unknown[] = [];
+  const open = vi.fn(async (target: unknown) => {
+    opened.push(target);
+    return { status: "opened" as const };
+  });
+  const panels = {
+    resolve: (url: string) => (url.startsWith("keel:") ? {} : undefined),
+  } as unknown as Pick<Panels, "resolve">;
+  let handoff: ReturnType<typeof useChannelNavigation>;
+  function Probe() {
+    handoff = useChannelNavigation();
+    return null;
+  }
+  render(
+    <ChannelNavigationProvider relay={relay}>
+      <InboxDetail
+        item={h.item}
+        target={{ channelId: "room", messageId: h.root.id }}
+        session={h.session}
+        scope={h.scope}
+        navigator={{ ...navigator, open }}
+        channelName="Room"
+        panels={panels}
+        onBack={() => {}}
+      />
+      <Probe />
+    </ChannelNavigationProvider>,
+  );
+  const link = await screen.findByRole("link", {
+    name: "keel://task/task-0123456789",
+  });
+  const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+  link.dispatchEvent(click);
+  expect(click.defaultPrevented).toBe(true); // the browser does not try to launch keel://
+  await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+  expect(opened[0]).toMatchObject({
+    kind: "conversation",
+    channelId: "room",
+    messageId: h.root.id,
+  });
+  // the Channels page opens this panel once it shows the conversation
+  expect(handoff?.panelIntent.current).toMatchObject({
+    channelId: "room",
+    target: "keel://task/task-0123456789",
+  });
 });

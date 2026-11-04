@@ -14,6 +14,7 @@ import type { RelayData } from "../../features/relay/service";
 import type { RelaySession } from "../../features/relay/session";
 import type { InboxItem } from "../../features/relay/inbox";
 import { InboxDetail } from "./InboxDetail";
+import type { Panels } from "../../features/panels/service";
 import { DraftsView } from "./DraftsView";
 import type { ConversationExtensions } from "../../features/conversation/contracts";
 import type { Navigation } from "../../features/navigation/controller";
@@ -79,10 +80,12 @@ export function InboxPage({
   relay,
   navigator,
   extensions,
+  panels,
 }: {
   relay: RelayData;
   navigator: Navigation;
   extensions?: ConversationExtensions | undefined;
+  panels?: Pick<Panels, "resolve"> | undefined;
 }) {
   const connection = useRelayConnection(relay);
   const { viewer, scope } = connection;
@@ -101,6 +104,7 @@ export function InboxPage({
             }}
             navigator={navigator}
             extensions={extensions}
+            panels={panels}
           />
         ) : (
           <div data-buzz-ui="" className={styles.page}>
@@ -135,11 +139,13 @@ export function InboxView({
   scope,
   navigator,
   extensions,
+  panels,
 }: {
   session: RelaySession;
   scope: NavigationScope;
   navigator: Navigation;
   extensions?: ConversationExtensions | undefined;
+  panels?: Pick<Panels, "resolve"> | undefined;
 }) {
   const previewId = useId();
   const list = useChannelList(session.channels);
@@ -823,6 +829,7 @@ export function InboxView({
               scope={scope}
               navigator={navigator}
               extensions={extensions}
+              panels={panels}
               channelName={
                 list.channels.find(
                   (channel) => channel.id === selected.channelId,

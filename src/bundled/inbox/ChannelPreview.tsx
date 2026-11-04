@@ -23,6 +23,7 @@ export function ChannelPreview({
   draft = false,
   onDraftSaved,
   onClose,
+  onOpenLink = () => false,
 }: {
   session: RelaySession;
   channelId: string;
@@ -34,6 +35,8 @@ export function ChannelPreview({
   draft?: boolean;
   onDraftSaved?: () => void;
   onClose?: () => void;
+  /** A link the caller can open (true) instead of the browser. */
+  onOpenLink?: (url: string) => boolean;
 }) {
   const window = useChannelWindow(session.channels, channelId);
   const [sentId, setSentId] = useState<string>();
@@ -87,7 +90,7 @@ export function ChannelPreview({
         revealSelected
         close={onClose}
         headerActions={exactActions}
-        onOpenLink={() => false}
+        onOpenLink={onOpenLink}
       />
     );
   return (
@@ -113,7 +116,7 @@ export function ChannelPreview({
                   ? { messageId: anchor, signal: inlineSignal }
                   : undefined
               }
-              onOpenLink={() => false}
+              onOpenLink={onOpenLink}
             />
           )}
           {(window.status === "error" || window.error) && (
