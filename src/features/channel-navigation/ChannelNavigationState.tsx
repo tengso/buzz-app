@@ -80,15 +80,16 @@ type ActivityThread = {
   signal: AbortSignal;
   trigger: HTMLElement | null;
 };
-type ActivityAgent = {
+/** Open a panel once the Channels page shows ``channelId``: Agents activity and links from pages without panels. */
+type PanelIntent = {
   channelId: string;
-  agent: string;
+  target: string;
   trigger: HTMLElement | null;
 };
 type Handoff = State & {
   menuActions: ReturnType<typeof createMenuActions>;
   activityThread: RefObject<ActivityThread | undefined>;
-  activityAgent: RefObject<ActivityAgent | undefined>;
+  panelIntent: RefObject<PanelIntent | undefined>;
   updateDraftParents(update: (previous: string[]) => string[]): void;
   prepareDm(members: readonly string[]): void;
   clearPreparingDm(): void;
@@ -117,13 +118,13 @@ export function ChannelNavigationProvider({
   // biome-ignore lint/correctness/useExhaustiveDependencies: retire all sidebar callbacks when the relay session or scope changes.
   const menuActions = useMemo(createMenuActions, [connection.session, scope]);
   const activityThread = useRef<ActivityThread | undefined>(undefined);
-  const activityAgent = useRef<ActivityAgent | undefined>(undefined);
+  const panelIntent = useRef<PanelIntent | undefined>(undefined);
   const [state, setState] = useState<State>(() =>
     restore(connection.session, scope),
   );
   if (state.session !== connection.session || state.scope !== scope) {
     activityThread.current = undefined;
-    activityAgent.current = undefined;
+    panelIntent.current = undefined;
     setState(restore(connection.session, scope));
   }
   const update = useCallback(
@@ -159,7 +160,7 @@ export function ChannelNavigationProvider({
       ...state,
       menuActions,
       activityThread,
-      activityAgent,
+      panelIntent,
       updateDraftParents(change) {
         update((previous) => {
           const draftParents = change(previous.draftParents);

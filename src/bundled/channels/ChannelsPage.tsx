@@ -1,7 +1,6 @@
 import { pendingSessionDraft } from "../../features/sessions/pending-start";
 import { NewSessionComposer } from "../../features/sessions/NewSessionComposer";
 import type { AgentControl } from "../../features/agents/control";
-import { activityTarget } from "../../features/agents/activity-target";
 import { useChannelNavigation } from "../../features/channel-navigation/ChannelNavigationState";
 import { useConversationTabs } from "./useConversationTabs";
 import tabStyles from "./ChannelTabs.module.css";
@@ -755,18 +754,17 @@ function ChannelWorkspace({
       if (!exact.inTimeline) selectOpening(undefined);
       handoff.activityThread.current = undefined;
     }
-    const activityAgent = handoff?.activityAgent.current;
-    if (activityAgent && activityAgent.channelId === current?.id) {
-      const target = activityTarget(
-        activityAgent.agent,
-        activityAgent.channelId,
-      );
-      const panel = panels.resolve(target);
+    const intent = handoff?.panelIntent.current;
+    if (intent && intent.channelId === current?.id) {
+      const panel = panels.resolve(intent.target);
       if (panel) {
-        panelTrigger.current = activityAgent.trigger;
-        open({ channelId: activityAgent.channelId, panel, target }, true);
+        panelTrigger.current = intent.trigger;
+        open(
+          { channelId: intent.channelId, panel, target: intent.target },
+          true,
+        );
       }
-      handoff.activityAgent.current = undefined;
+      handoff.panelIntent.current = undefined;
     }
   }, [
     draftParent,
@@ -782,7 +780,7 @@ function ChannelWorkspace({
     selectOpening,
     currentId,
     thread,
-    handoff?.activityAgent,
+    handoff?.panelIntent,
     current?.id,
     panels,
     panelTrigger,

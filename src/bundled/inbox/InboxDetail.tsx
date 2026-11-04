@@ -13,6 +13,8 @@ import type { Navigation } from "../../features/navigation/controller";
 import type { ConversationExtensions } from "../../features/conversation/contracts";
 import type { InboxItem } from "../../features/relay/inbox";
 import { ThreadPanel } from "../../features/messages/ThreadPanel";
+import { useChannelNavigation } from "../../features/channel-navigation/ChannelNavigationState";
+import type { Panels } from "../../features/panels/service";
 import { ChannelPreview } from "./ChannelPreview";
 import { useIdentityNames } from "../../features/identity-names/react";
 import { selectProfiles } from "../../features/relay/profile-selection";
@@ -33,6 +35,7 @@ export function InboxDetail({
   extensions,
   channelName,
   previewIncomplete,
+  panels,
   onBack,
 }: {
   item: InboxItem;
@@ -43,8 +46,11 @@ export function InboxDetail({
   extensions?: ConversationExtensions | undefined;
   channelName: string;
   previewIncomplete?: "loading" | "error" | undefined;
+  /** Panels the Channels page can show; a link one of them shows opens the conversation with it. */
+  panels?: Pick<Panels, "resolve"> | undefined;
   onBack(): void;
 }) {
+  const handoff = useChannelNavigation();
   const [error, setError] = useState<string>();
   const placeholderClose = useRef<HTMLButtonElement>(null);
   const reader = useRef<HTMLDivElement>(null);
@@ -152,8 +158,24 @@ export function InboxDetail({
       ...(target.rootId ? { threadRootId: target.rootId } : {}),
     };
     const result = await navigator.open(destination);
+    if (
+      result.status !== "opened" &&
+      handoff?.panelIntent.current?.channelId === target.channelId
+    )
+      handoff.panelIntent.current = undefined;
     if (result.status === "failed")
       setError("This conversation could not be opened. Try again.");
+  };
+  // Inbox shows no panels: a link one can show (e.g. keel://task/…) opens the conversation with that panel.
+  const openLink = (url: string) => {
+    if (!handoff || !panels?.resolve(url)) return false;
+    handoff.panelIntent.current = {
+      channelId: target.channelId,
+      target: url,
+      trigger: null,
+    };
+    void open();
+    return true;
   };
   const openAction = (
     <IconButton
@@ -256,6 +278,7 @@ export function InboxDetail({
                       : channelName
                   }
                   anchor={target.messageId}
+                  onOpenLink={openLink}
                   onClose={onBack}
                   exactActions={openAction}
                   actions={
@@ -281,7 +304,7 @@ export function InboxDetail({
                   sessionConversation={channel?.channelType === "session"}
                   revealSelected
                   close={onBack}
-                  onOpenLink={() => false}
+                  onOpenLink={openLink}
                   headerActions={openAction}
                 />
               )}

@@ -59,6 +59,8 @@ import missionControlManifest from "./mission-control/manifest.json";
 import * as missionControl from "./mission-control";
 import appLinksManifest from "./app-links/manifest.json";
 import * as appLinks from "./app-links";
+import keelManifest from "./keel/manifest.json";
+import * as keel from "./keel";
 
 export const bundledPlugins: readonly BundledPlugin[] = [
   {
@@ -209,6 +211,11 @@ export const bundledPlugins: readonly BundledPlugin[] = [
   {
     manifest: { ...appLinksManifest, apiVersion: 1 },
     module: appLinks,
+    enabledByDefault: true,
+  },
+  {
+    manifest: { ...keelManifest, apiVersion: 1 },
+    module: keel,
     enabledByDefault: true,
   },
 ];

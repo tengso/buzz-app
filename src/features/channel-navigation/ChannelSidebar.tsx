@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { activityTarget } from "../agents/activity-target";
 import { ChannelLifecycleDialog } from "../../bundled/channels/ChannelLifecycleDialog";
 import { ChannelLifecycleMenu } from "../../bundled/channels/ChannelLifecycleMenu";
 import type { ChannelLifecycleAction } from "../relay/channel-lifecycle-protocol";
@@ -480,13 +481,13 @@ function ReadySidebar({
       if (!viewer || relay.snapshot().session !== queries) return;
       const intent = {
         channelId,
-        agent,
+        target: activityTarget(agent, channelId),
         trigger:
           sidebar.list.current?.querySelector<HTMLElement>(
             `[data-channel-id="${CSS.escape(channelId)}"]`,
           ) ?? null,
       };
-      if (handoff) handoff.activityAgent.current = intent;
+      if (handoff) handoff.panelIntent.current = intent;
       void navigator
         .open({
           version: 1,
@@ -500,9 +501,9 @@ function ReadySidebar({
         .then((result) => {
           if (
             result.status !== "opened" &&
-            handoff?.activityAgent.current === intent
+            handoff?.panelIntent.current === intent
           )
-            handoff.activityAgent.current = undefined;
+            handoff.panelIntent.current = undefined;
         });
     },
     [viewer, relay, queries, handoff, sidebar.list, navigator, scope],
