@@ -104,6 +104,7 @@ export function KeelPanel({
   relay,
   target,
   channelContext,
+  context,
 }: PanelProps & { relay: RelayData }) {
   const connection = useRelayConnection(relay);
   const reference = useMemo(
@@ -118,7 +119,8 @@ export function KeelPanel({
         key={`${reference.url}:${connection.status === "ready" ? connection.generation : 0}`}
         reference={reference}
         session={connection.status === "ready" ? connection.session : undefined}
-        channelId={channelContext?.channelId}
+        // A link opened from a message supplies its channel through `context`, not `channelContext`.
+        channelId={channelContext?.channelId ?? context?.channelId}
         threadId={channelContext?.threadId}
       />
     </div>
@@ -362,7 +364,18 @@ function ActionForm({
         </Button>
       </div>
     );
-  const missing = fields.some((p) => p.required && !values[p.name]?.trim());
+  const missing = fields.filter((p) => p.required && !values[p.name]?.trim());
+  // Say why Submit is disabled rather than leave the viewer guessing.
+  const why = [
+    missing.length
+      ? `Fill in ${missing.map((p) => p.label?.en ?? p.name).join(", ")}.`
+      : "",
+    !destination.channelId
+      ? "Open this card from a link in a channel conversation: Keel answers there."
+      : !outbox?.supports(9)
+        ? "Buzz cannot post here yet: wait for it to connect, or reload."
+        : "",
+  ].filter(Boolean);
   return (
     <form
       className="grid gap-3"
@@ -429,7 +442,7 @@ function ActionForm({
           type="submit"
           variant="primary"
           size="compact"
-          disabled={!ready || missing}
+          disabled={!ready || missing.length > 0}
         >
           Submit
           {action.riskTier && action.riskTier !== "T0"
@@ -440,10 +453,8 @@ function ActionForm({
           Cancel
         </Button>
       </div>
-      {!ready && (
-        <p className="text-body-sm text-muted">
-          Open this from a channel conversation to submit it.
-        </p>
+      {why.length > 0 && (
+        <p className="text-body-sm text-muted">{why.join(" ")}</p>
       )}
       {status?.kind === "error" && (
         <p role="alert" className="error">

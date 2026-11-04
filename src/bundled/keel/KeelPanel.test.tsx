@@ -9,9 +9,15 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
+import type { RelayData } from "../../features/relay/service";
 import type { RelaySession } from "../../features/relay/session";
 import type { KeelTask } from "./gateway";
-import { forgetKeelConversation, KeelRecord, TaskCard } from "./KeelPanel";
+import {
+  forgetKeelConversation,
+  KeelPanel,
+  KeelRecord,
+  TaskCard,
+} from "./KeelPanel";
 
 const KEEL = "b".repeat(64);
 const task: KeelTask = {
@@ -370,7 +376,8 @@ it("submits an action from an object's card as a message to Keel, with fields fr
   const submit = screen.getByRole("button", {
     name: "Submit for approval (T2)",
   });
-  expect(submit).toBeDisabled(); // the effective date is required
+  expect(submit).toBeDisabled(); // the effective date is required, and the form says so
+  expect(screen.getByText("Fill in Effective date.")).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Effective date"), {
     target: { value: "2026-11-05" },
   });
@@ -387,5 +394,75 @@ it("submits an action from an object's card as a message to Keel, with fields fr
         ["p", "keel-key"],
       ],
     },
+  ]);
+});
+
+it("lets a card opened from a message link submit: the channel comes from the panel context", async () => {
+  vi.stubGlobal(
+    "fetch",
+    answers({
+      "/api/v1/conversation": {
+        adapter: "buzz",
+        pubkey: "keel-key",
+        channels: {},
+      },
+      "/api/v1/ontology": {
+        actionTypes: {
+          "cra.propose_limit": {
+            name: "cra.propose_limit",
+            label: { en: "Propose limit" },
+            riskTier: "T0",
+            parameters: [
+              { name: "limit", objectType: "cra.CreditLimit", required: true },
+              {
+                name: "exposure",
+                type: "money",
+                required: true,
+                label: { en: "Exposure" },
+              },
+            ],
+          },
+        },
+      },
+      "/api/v1/objects/cra.CreditLimit/L-1": {
+        object: { limit_id: "L-1", status: "proposed", _version: 2 },
+      },
+    }),
+  );
+  const sent: { kind: number; content: string; tags: string[][] }[] = [];
+  const snapshot = {
+    status: "ready",
+    generation: 1,
+    scope: "s",
+    viewer: "v",
+    session: session(sent),
+  };
+  const relay = {
+    snapshot: () => snapshot,
+    subscribe: () => () => {},
+  } as unknown as RelayData;
+  render(
+    <KeelPanel
+      relay={relay}
+      target="keel://cra.CreditLimit/L-1"
+      close={() => {}}
+      context={{ channelId: "chan-1", canOpen: () => true, open: () => true }}
+    />,
+  );
+  fireEvent.click(await screen.findByRole("button", { name: "Propose limit" }));
+  expect(screen.getByText("Fill in Exposure.")).toBeInTheDocument();
+  fireEvent.change(screen.getByRole("spinbutton", { name: "Exposure" }), {
+    target: { value: "50000000" },
+  });
+  const submit = screen.getByRole("button", { name: "Submit" });
+  expect(submit).toBeEnabled();
+  fireEvent.click(submit);
+  await screen.findByRole("status");
+  expect(sent[0]?.content).toBe(
+    'submit cra.propose_limit {"limit":"L-1","exposure":{"amount":50000000,"currency":"USD"}}',
+  );
+  expect(sent[0]?.tags).toEqual([
+    ["h", "chan-1"],
+    ["p", "keel-key"],
   ]);
 });
