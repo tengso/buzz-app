@@ -143,6 +143,8 @@ export type KeelTask = {
   title: string;
   state: string;
   assignee: string;
+  /** False when the viewer may read the task (Keel posted it where they saw it) but not decide it. */
+  can_decide?: boolean;
   claimed_by?: string | null;
   due_at?: string | null;
   created_by?: string;

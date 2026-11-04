@@ -601,7 +601,12 @@ export function TaskCard({
           {task.resolution.by ? ` by ${String(task.resolution.by)}` : ""}
         </p>
       )}
-      {open && verbs.length > 0 && (
+      {open && task.can_decide === false && (
+        <p className="text-body-sm text-muted">
+          Read-only: this task is for {task.assignee}.
+        </p>
+      )}
+      {open && task.can_decide !== false && verbs.length > 0 && (
         <Decide
           task={task}
           verbs={verbs}

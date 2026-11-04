@@ -488,3 +488,33 @@ it("lets a card opened from a message link submit: the channel comes from the pa
     ["p", "keel-key"],
   ]);
 });
+
+it("shows a task Keel says the viewer cannot decide as read-only, without decision buttons", async () => {
+  vi.stubGlobal(
+    "fetch",
+    answers({ "/api/v1/conversation": { adapter: "buzz", channels: {} } }),
+  );
+  const sent: { kind: number; content: string; tags: string[][] }[] = [];
+  render(
+    <TaskCard
+      task={{
+        ...task,
+        can_decide: false,
+        assignee: "group:cra-credit-committee",
+      }}
+      session={session(sent)}
+      refresh={() => {}}
+    />,
+  );
+  expect(
+    await screen.findByText(
+      "Read-only: this task is for group:cra-credit-committee.",
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Approve" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Reject" }),
+  ).not.toBeInTheDocument();
+});
