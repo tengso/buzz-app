@@ -86,7 +86,7 @@ export function KeelSettings() {
           description={
             browserHostEnabled()
               ? "Not needed here: this host signs reads with your key (NIP-98). Set one only to act as a service account."
-              : "This host cannot sign reads; paste a token from `osym token create`."
+              : "This host cannot sign reads; paste a token from `keel token create`."
           }
         >
           <Input

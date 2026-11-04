@@ -229,7 +229,7 @@ it("tells an unlinked viewer what to do and lets them retry", async () => {
   await screen.findByRole("heading", {
     name: "Your key is not linked to Keel",
   });
-  expect(screen.getByText(/osym member link/)).toBeInTheDocument();
+  expect(screen.getByText(/keel member link/)).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
   await screen.findByRole("heading", { name: task.title });

@@ -19,7 +19,7 @@ and no Keel credential is needed on a host that can sign.
   the panel offers Approve/Reject, Accept/Reject or Pick n/Reject with a reason. Pressing
   one sends an ordinary kind-9 reply in the current thread (or the thread Keel posted the
   task in): `approve task-84450d5a33 looks right`. The reply mentions Keel's own key when
-  the Gateway reports one. Keel's follower (`osym intents follow`) verifies the signature,
+  the Gateway reports one. Keel's worker (`keel worker`) reads the channel, verifies the signature,
   maps your key to your Keel subject, checks policy and applies it — an agent's key is
   refused for decisions there. Other task types are decided in the workbench.
 - **Page.** **Keel** in the sidebar lists the open tasks waiting on you or your groups,
@@ -33,17 +33,18 @@ and no Keel credential is needed on a host that can sign.
 On the web host each read carries a NIP-98 `Authorization: Nostr …` event — kind 27235
 with the request URL and method — signed with the viewer's key (local key or NIP-07
 signer, as for Mission Control). Keel maps the key to a subject through its member links
-(`osym member link <subject> <npub> -g <group>`); an unlinked key gets 401 and the panel
+(`keel member link <subject> <npub> --group <group>`); an unlinked key gets 401 and the panel
 says so. The native app cannot sign reads yet; there, paste a token from
-`osym token create` in Settings → Keel.
+`keel token create` in Settings → Keel.
 
 ## Deployment
 
 Browser host: proxy Keel's Gateway under the app's origin (`location /keel/` in
 [`browser-host.gateway.nginx.conf`](browser-host.gateway.nginx.conf)); the app's
 `connect-src 'self'` then covers it. Native app: the Tauri CSP allows `https:` and
-loopback `http:` for the Gateway URL you configure. Run `osym intents follow` beside Keel
-so replies are applied; its filters follow Keel's own recent posts and mentions of its key.
+loopback `http:` for the Gateway URL you configure. Run `keel worker` beside Keel
+so replies are applied: it reads the channels Keel posts in and applies a reply that names its task
+or answers Keel's post of it, once, as the person linked to the signing key.
 
 ## Not yet
 

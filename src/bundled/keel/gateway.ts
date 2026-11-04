@@ -88,7 +88,7 @@ export async function nip98(
 }
 
 const explain: Record<number, string> = {
-  401: "Keel does not know this key. Ask an admin to link it (osym member link).",
+  401: "Keel does not know this key. Ask an admin to link it (keel member link).",
   403: "Keel's policy does not allow this for you.",
   404: "Not found, or hidden from you by policy.",
 };
