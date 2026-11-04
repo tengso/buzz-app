@@ -299,3 +299,93 @@ it("reads the task again when Keel says in the thread that it changed", async ()
     ).not.toBeInTheDocument(),
   );
 });
+
+it("submits an action from an object's card as a message to Keel, with fields from its parameters", async () => {
+  vi.stubGlobal(
+    "fetch",
+    answers({
+      "/api/v1/conversation": {
+        adapter: "buzz",
+        pubkey: "keel-key",
+        channels: {},
+      },
+      "/api/v1/ontology": {
+        actionTypes: {
+          "cra.approve_limit": {
+            name: "cra.approve_limit",
+            label: { en: "Approve limit" },
+            riskTier: "T2",
+            parameters: [
+              { name: "limit", objectType: "cra.CreditLimit", required: true },
+              {
+                name: "effective_date",
+                type: "date",
+                required: true,
+                label: { en: "Effective date" },
+              },
+              {
+                name: "comment",
+                type: "string",
+                required: false,
+                label: { en: "Comment" },
+              },
+            ],
+          },
+          "cra.ignore_document": {
+            name: "cra.ignore_document",
+            parameters: [
+              {
+                name: "document",
+                objectType: "cra.SourceDocument",
+                required: true,
+              },
+            ],
+          },
+        },
+      },
+      "/api/v1/objects/cra.CreditLimit/L-1": {
+        object: { limit_id: "L-1", status: "proposed", _version: 2 },
+      },
+    }),
+  );
+  const sent: { kind: number; content: string; tags: string[][] }[] = [];
+  render(
+    <KeelRecord
+      reference={{
+        kind: "object",
+        type: "cra.CreditLimit",
+        pk: "L-1",
+        url: "keel://cra.CreditLimit/L-1",
+      }}
+      session={session(sent)}
+      channelId="chan-1"
+      threadId={"c".repeat(64)}
+    />,
+  );
+  // only actions on this object type are offered
+  fireEvent.click(await screen.findByRole("button", { name: "Approve limit" }));
+  expect(
+    screen.queryByRole("button", { name: "cra.ignore_document" }),
+  ).not.toBeInTheDocument();
+  const submit = screen.getByRole("button", {
+    name: "Submit for approval (T2)",
+  });
+  expect(submit).toBeDisabled(); // the effective date is required
+  fireEvent.change(screen.getByLabelText("Effective date"), {
+    target: { value: "2026-11-05" },
+  });
+  fireEvent.click(submit);
+  await screen.findByRole("status");
+  expect(sent).toEqual([
+    {
+      kind: 9,
+      content:
+        'submit cra.approve_limit {"limit":"L-1","effective_date":"2026-11-05"}',
+      tags: [
+        ["h", "chan-1"],
+        ["e", "c".repeat(64), "", "reply"],
+        ["p", "keel-key"],
+      ],
+    },
+  ]);
+});

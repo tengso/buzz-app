@@ -211,7 +211,246 @@ function KeelRecordView({
       refresh={refresh}
     />
   ) : (
-    <ObjectCard reference={reference} record={loaded.value as KeelObject} />
+    <>
+      <ObjectCard reference={reference} record={loaded.value as KeelObject} />
+      <Actions
+        reference={reference}
+        session={session}
+        destination={{ channelId, threadId }}
+      />
+    </>
+  );
+}
+
+type KeelParameter = {
+  name: string;
+  type?: string | null;
+  objectType?: string | null;
+  required?: boolean;
+  choices?: string[] | null;
+  label?: Record<string, string> | null;
+};
+type KeelActionType = {
+  name: string;
+  label?: Record<string, string> | null;
+  description?: Record<string, string> | null;
+  riskTier?: string;
+  parameters: KeelParameter[];
+};
+
+/** Governed actions the viewer may execute on this object, as forms generated from each action's parameters.
+ * Submitting sends `submit <action> {json}` to Keel in this thread; Keel applies it as the viewer (policy,
+ * criteria, approvals) and answers there. Nothing is written over HTTP. */
+function Actions({
+  reference,
+  session,
+  destination,
+}: {
+  reference: Extract<KeelReference, { kind: "object" }>;
+  session?: RelaySession | undefined;
+  destination: {
+    channelId?: string | undefined;
+    threadId?: string | undefined;
+  };
+}) {
+  const loaded = useKeel<{ actionTypes: Record<string, KeelActionType> }>(
+    "/api/v1/ontology",
+  );
+  const [open, setOpen] = useState<string>();
+  if (loaded.status !== "ready") return null;
+  const actions = Object.values(loaded.value.actionTypes).filter((action) =>
+    action.parameters.some((p) => p.objectType === reference.type),
+  );
+  if (!actions.length) return null;
+  const current = actions.find((action) => action.name === open);
+  return (
+    <section className="grid gap-2 border-t pt-3" aria-label="Actions">
+      <h3 className="text-body-sm text-muted">Actions</h3>
+      {current ? (
+        <ActionForm
+          key={current.name}
+          action={current}
+          reference={reference}
+          session={session}
+          destination={destination}
+          close={() => setOpen(undefined)}
+        />
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {actions.map((action) => (
+            <Button
+              key={action.name}
+              size="compact"
+              onClick={() => setOpen(action.name)}
+            >
+              {action.label?.en ?? action.name}
+            </Button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ActionForm({
+  action,
+  reference,
+  session,
+  destination,
+  close,
+}: {
+  action: KeelActionType;
+  reference: Extract<KeelReference, { kind: "object" }>;
+  session?: RelaySession | undefined;
+  destination: {
+    channelId?: string | undefined;
+    threadId?: string | undefined;
+  };
+  close(): void;
+}) {
+  const target = action.parameters.find((p) => p.objectType === reference.type);
+  const fields = action.parameters.filter((p) => p !== target);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<{
+    kind: "sent" | "error";
+    text: string;
+  }>();
+  const outbox = session?.outbox;
+  const ready = !!outbox?.supports(9) && !!destination.channelId;
+  const set = (name: string, value: string) =>
+    setValues((previous) => ({ ...previous, [name]: value }));
+  const submit = async () => {
+    if (!outbox || !destination.channelId || !target) return;
+    const params: Record<string, unknown> = { [target.name]: reference.pk };
+    for (const p of fields) {
+      const value = values[p.name]?.trim();
+      if (!value) continue;
+      params[p.name] =
+        p.type === "money"
+          ? {
+              amount: Number(value),
+              currency: values[`${p.name}.currency`]?.trim() || "USD",
+            }
+          : p.type === "integer" || p.type === "decimal" || p.type === "number"
+            ? Number(value)
+            : value;
+    }
+    const content = `submit ${action.name} ${JSON.stringify(params)}`;
+    try {
+      await sendToKeel(
+        outbox,
+        destination.channelId,
+        destination.threadId,
+        content,
+      );
+      setStatus({
+        kind: "sent",
+        text: `Sent “${content}”. Keel answers in this thread.`,
+      });
+    } catch (error) {
+      setStatus({ kind: "error", text: message(error) });
+    }
+  };
+  if (status?.kind === "sent")
+    return (
+      <div className="grid gap-2">
+        <p role="status" className="text-body-sm">
+          {status.text}
+        </p>
+        <Button size="compact" onClick={close}>
+          Done
+        </Button>
+      </div>
+    );
+  const missing = fields.some((p) => p.required && !values[p.name]?.trim());
+  return (
+    <form
+      className="grid gap-3"
+      aria-label={action.label?.en ?? action.name}
+      onSubmit={(event) => {
+        event.preventDefault();
+        void submit();
+      }}
+    >
+      {action.description?.en && (
+        <p className="text-body-sm text-muted">{action.description.en}</p>
+      )}
+      {fields.map((p) => {
+        const label = `${p.label?.en ?? p.name}${p.required ? "" : " (optional)"}`;
+        if (p.choices?.length)
+          return (
+            <Field key={p.name} label={label}>
+              <select
+                aria-label={label}
+                value={values[p.name] ?? ""}
+                onChange={(event) => set(p.name, event.target.value)}
+              >
+                <option value="">Choose…</option>
+                {p.choices.map((choice) => (
+                  <option key={choice} value={choice}>
+                    {choice}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          );
+        return (
+          <Field key={p.name} label={label}>
+            <div className="flex gap-2">
+              <Input
+                aria-label={label}
+                type={
+                  p.type === "date"
+                    ? "date"
+                    : p.type === "money" ||
+                        p.type === "decimal" ||
+                        p.type === "integer"
+                      ? "number"
+                      : "text"
+                }
+                value={values[p.name] ?? ""}
+                onChange={(event) => set(p.name, event.target.value)}
+              />
+              {p.type === "money" && (
+                <Input
+                  aria-label={`${p.label?.en ?? p.name} currency`}
+                  value={values[`${p.name}.currency`] ?? "USD"}
+                  onChange={(event) =>
+                    set(`${p.name}.currency`, event.target.value)
+                  }
+                />
+              )}
+            </div>
+          </Field>
+        );
+      })}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="submit"
+          variant="primary"
+          size="compact"
+          disabled={!ready || missing}
+        >
+          Submit
+          {action.riskTier && action.riskTier !== "T0"
+            ? ` for approval (${action.riskTier})`
+            : ""}
+        </Button>
+        <Button size="compact" onClick={close}>
+          Cancel
+        </Button>
+      </div>
+      {!ready && (
+        <p className="text-body-sm text-muted">
+          Open this from a channel conversation to submit it.
+        </p>
+      )}
+      {status?.kind === "error" && (
+        <p role="alert" className="error">
+          {status.text}
+        </p>
+      )}
+    </form>
   );
 }
 
@@ -357,6 +596,25 @@ function formatParam(value: unknown) {
   return formatValue(value);
 }
 
+/** A signed kind-9 message to Keel in the channel (and thread), mentioning Keel's key when Keel can receive it. */
+async function sendToKeel(
+  outbox: NonNullable<RelaySession["outbox"]>,
+  channelId: string,
+  threadId: string | undefined,
+  content: string,
+) {
+  const keel = await keelConversation();
+  const tags: string[][] = [["h", channelId]];
+  if (threadId) tags.push(["e", threadId, "", "reply"]);
+  const mention = keel?.pubkey ? [["p", keel.pubkey]] : [];
+  try {
+    outbox.send({ kind: 9, content, tags: [...tags, ...mention] });
+  } catch (error) {
+    if (!mention.length) throw error;
+    outbox.send({ kind: 9, content, tags }); // Keel is not a member here: send without the mention
+  }
+}
+
 /** A decision is a signed reply in the task's thread: Keel's follower verifies and applies it. */
 function Decide({
   task,
@@ -387,18 +645,13 @@ function Decide({
     async (verb: (typeof verbs)[number], choice?: string) => {
       if (!outbox || !destination.channelId) return;
       const content = decisionText(verb, task.id, reason, choice);
-      const keel = await keelConversation();
-      const tags: string[][] = [["h", destination.channelId]];
-      if (destination.threadId)
-        tags.push(["e", destination.threadId, "", "reply"]);
-      const mention = keel?.pubkey ? [["p", keel.pubkey]] : [];
       try {
-        try {
-          outbox.send({ kind: 9, content, tags: [...tags, ...mention] });
-        } catch (error) {
-          if (!mention.length) throw error;
-          outbox.send({ kind: 9, content, tags }); // Keel is not a member here: reply without the mention
-        }
+        await sendToKeel(
+          outbox,
+          destination.channelId,
+          destination.threadId,
+          content,
+        );
         setStatus({
           kind: "sent",
           text: `Sent “${content}”. Keel applies it once it reads your reply.`,
