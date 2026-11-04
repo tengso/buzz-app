@@ -173,6 +173,20 @@ it("offers Pick n from the candidates of a conflict and disables deciding when i
             value: { amount: 398_000_000, currency: "USD" },
             confidence: 0.8,
             state: "proposed",
+            reviews: [
+              {
+                reviewer: "svc:cra-reviewer via agent:cra-reviewer",
+                verdict: "object",
+                reason: "the statement is from last year",
+                evidence: {
+                  source: {
+                    document: "d1",
+                    page: 3,
+                    excerpt: "as at 31 December 2024",
+                  },
+                },
+              },
+            ],
           },
         ],
       },
@@ -197,6 +211,14 @@ it("offers Pick n from the candidates of a conflict and disables deciding when i
   );
   await screen.findByText("Net assets USD 412.3m (p. 12)");
   expect(screen.getByText("USD 412,300,000")).toBeInTheDocument();
+  // a reviewer's opinion shows with the candidate it is about
+  const review = screen.getByLabelText(
+    "svc:cra-reviewer via agent:cra-reviewer object",
+  );
+  expect(review).toHaveTextContent(
+    "Objects svc:cra-reviewer via agent:cra-reviewer: the statement is from last year",
+  );
+  expect(review).toHaveTextContent("as at 31 December 2024 (p. 3)");
   const pick = screen.getByRole("button", { name: "Pick 2" });
   expect(pick).toBeDisabled(); // no channel: Keel has not posted this task
   expect(
@@ -465,4 +487,34 @@ it("lets a card opened from a message link submit: the channel comes from the pa
     ["h", "chan-1"],
     ["p", "keel-key"],
   ]);
+});
+
+it("shows a task Keel says the viewer cannot decide as read-only, without decision buttons", async () => {
+  vi.stubGlobal(
+    "fetch",
+    answers({ "/api/v1/conversation": { adapter: "buzz", channels: {} } }),
+  );
+  const sent: { kind: number; content: string; tags: string[][] }[] = [];
+  render(
+    <TaskCard
+      task={{
+        ...task,
+        can_decide: false,
+        assignee: "group:cra-credit-committee",
+      }}
+      session={session(sent)}
+      refresh={() => {}}
+    />,
+  );
+  expect(
+    await screen.findByText(
+      "Read-only: this task is for group:cra-credit-committee.",
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Approve" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Reject" }),
+  ).not.toBeInTheDocument();
 });

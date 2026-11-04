@@ -143,6 +143,8 @@ export type KeelTask = {
   title: string;
   state: string;
   assignee: string;
+  /** False when the viewer may read the task (Keel posted it where they saw it) but not decide it. */
+  can_decide?: boolean;
   claimed_by?: string | null;
   due_at?: string | null;
   created_by?: string;
@@ -178,6 +180,15 @@ export type KeelProposal = {
   evidence?: {
     source?: { document?: string; page?: number; excerpt?: string } | null;
   } | null;
+  /** Opinions on the proposal (agents and people); reviewing never decides. */
+  reviews?: {
+    reviewer: string;
+    verdict: "concur" | "object";
+    reason: string;
+    evidence?: {
+      source?: { document?: string; page?: number; excerpt?: string } | null;
+    } | null;
+  }[];
 };
 
 export type KeelObject = {
