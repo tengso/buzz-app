@@ -237,3 +237,65 @@ it("tells an unlinked viewer what to do and lets them retry", async () => {
     screen.queryByRole("button", { name: "Approve" }),
   ).not.toBeInTheDocument();
 });
+
+it("reads the task again when Keel says in the thread that it changed", async () => {
+  let state = "open";
+  const reads: string[] = [];
+  const fetch = vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input);
+    reads.push(url);
+    return new Response(
+      JSON.stringify(
+        url.includes("/conversation")
+          ? { adapter: "buzz", pubkey: "keel-key", channels: {} }
+          : { ...task, state },
+      ),
+    );
+  });
+  vi.stubGlobal("fetch", fetch);
+  let live:
+    | ((batch: {
+        events: { kind: number; pubkey: string; content: string }[];
+      }) => void)
+    | undefined;
+  const watching = {
+    subscribeLive(listener: typeof live) {
+      live = listener;
+      return () => {
+        live = undefined;
+      };
+    },
+  } as unknown as RelaySession;
+  const url = `keel://task/${task.id}`;
+  const taskReads = () =>
+    reads.filter((read) => read.includes("/tasks/")).length;
+  render(
+    <KeelRecord
+      reference={{ kind: "task", id: task.id, url }}
+      session={watching}
+    />,
+  );
+  await screen.findByRole("heading", { name: task.title });
+  await waitFor(() =>
+    expect(reads.some((read) => read.includes("/conversation"))).toBe(true),
+  );
+  expect(taskReads()).toBe(1);
+  // someone else quoting the link is not Keel speaking
+  live?.({ events: [{ kind: 9, pubkey: "carl", content: `see ${url}` }] });
+  state = "done";
+  live?.({
+    events: [
+      {
+        kind: 9,
+        pubkey: "keel-key",
+        content: `Resolved by hanna: approve → ${url}`,
+      },
+    ],
+  });
+  await waitFor(() => expect(taskReads()).toBe(2));
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("button", { name: "Approve" }),
+    ).not.toBeInTheDocument(),
+  );
+});

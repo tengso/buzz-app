@@ -132,6 +132,26 @@ export function KeelRecord(props: {
   threadId?: string | undefined;
 }) {
   const [attempt, retry] = useState(0);
+  const { session, reference } = props;
+  // Keel says in the task's thread when the task changes (decided, escalated, expired): read it again then.
+  useEffect(() => {
+    if (!session?.subscribeLive || reference.kind !== "task") return;
+    let keel: string | null | undefined;
+    void keelConversation().then((found) => {
+      keel = found?.pubkey ?? null;
+    });
+    return session.subscribeLive(({ events }) => {
+      if (
+        events.some(
+          (event) =>
+            event.kind === 9 &&
+            (keel ? event.pubkey === keel : true) &&
+            event.content.includes(reference.url),
+        )
+      )
+        retry((count) => count + 1);
+    });
+  }, [session, reference.kind, reference.url]);
   return (
     <KeelRecordView
       key={attempt}
