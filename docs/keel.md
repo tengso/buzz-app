@@ -14,7 +14,12 @@ and no Keel credential is needed on a host that can sign.
   workbench URL is set, opens the record beside the conversation: the task with its
   candidates and their evidence excerpts, or the object with its fields, provenance kind
   per field, open proposals and findings. Masked fields show as hidden; Keel decides that
-  per viewer.
+  per viewer. Each candidate shows its reviews (an agent's or a person's concur/object, why,
+  and the page quote checked). A link clicked in **Inbox** opens its conversation with the
+  panel. A task you may read but not decide (Keel posted it where you saw it, `can_decide`
+  false) is shown read-only, naming whose it is.
+- **Live.** Keel says in a task's thread when the task is decided elsewhere, escalated,
+  expires or is handed on; an open card re-reads its task when such a Keel message names it.
 - **Deciding.** On an open `approve-action`, `confirm-proposal` or `resolve-conflict` task
   the panel offers Approve/Reject, Accept/Reject or Pick n/Reject with a reason. Pressing
   one sends an ordinary kind-9 reply in the current thread (or the thread Keel posted the
@@ -22,6 +27,12 @@ and no Keel credential is needed on a host that can sign.
   the Gateway reports one. Keel's worker (`keel worker`) reads the channel, verifies the signature,
   maps your key to your Keel subject, checks policy and applies it — an agent's key is
   refused for decisions there. Other task types are decided in the workbench.
+- **Acting.** An object's card lists the governed actions you may execute on its type (from
+  Keel's ontology), each as a form generated from the action's parameters (dates, money with
+  currency, numbers, choices, text; required fields gate Submit, and the form says why Submit
+  is disabled). Submit sends `submit <action> {json}` in the thread; Keel applies it as you
+  (policy, criteria, risk tier, approvals) and answers there. An approval it needs is posted
+  for the approvers, who approve by replying.
 - **Page.** **Keel** in the sidebar lists the open tasks waiting on you or your groups,
   shows one, lets you decide from there when Keel has posted it, and opens its thread.
 - **Settings → Keel.** Gateway URL (default: same-origin `/keel`), optional workbench URL,
@@ -48,5 +59,5 @@ or answers Keel's post of it, once, as the person linked to the signing key.
 
 ## Not yet
 
-Composer forms generated from Keel's action schemas (`propose`, `submit-action` from the
-composer), structured kind-1391 intents from the outbox, and the Keel workbench as a page.
+Forms in the composer itself (the forms live on the record's card), proposing a value from
+the card, structured kind-1391 intents from the outbox, and the Keel workbench as a page.
