@@ -96,6 +96,10 @@ export default defineConfig(async ({ command, mode }) => {
       "import.meta.env.VITE_BUZZ_MISSION_CONTROL": JSON.stringify(
         missionControl ? "1" : "",
       ),
+      // For relays that predate signed thread windows: always use legacy thread reads.
+      "import.meta.env.VITE_BUZZ_LEGACY_THREADS": JSON.stringify(
+        env.BUZZ_LEGACY_THREADS === "1" ? "1" : "",
+      ),
       ...brandHost.brandDefines(brand),
     },
     ...(proxiedOrigin ? { base: "./" } : {}),
