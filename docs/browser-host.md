@@ -358,6 +358,15 @@ BUZZ_HOST=browser BUZZ_PROXIED_RELAY_URL=ws://127.0.0.1:3100 BUZZ_BRAND_DIR=/pat
   `buzz.*` keys) stay as they are, so a branded build works with the same relay
   and data.
 
+## Relays without thread windows
+
+Threads open with a signed thread window, which relays added later. An older relay
+answers the first request without one; the app then falls back to the older reads
+when the answer has replies, but a thread with no replies yet fails with "Relay did
+not serve a signed thread window" (an empty answer could also mean no access, so the
+app does not guess). For a deployment whose relay is known to predate thread
+windows, build with `BUZZ_LEGACY_THREADS=1`: every thread then uses the older reads.
+
 ## Limitations
 
 - Saved groups, stars and "Me" placement need the local key or an extension with

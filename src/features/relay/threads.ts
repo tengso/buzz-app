@@ -100,9 +100,13 @@ export function createThreadView({
   let staged: readonly RelayEvent[] = [];
   // Strict reads require transport-supplied binding authority. Missing scope is
   // a configuration error, not evidence of an old relay that permits fallback.
-  let mode: "probe" | "older" | "legacy" = canonicalChannel.test(channelId)
-    ? "probe"
-    : "legacy";
+  // BUZZ_LEGACY_THREADS builds target a relay known to predate thread windows: an
+  // empty probe there cannot be told apart from an access-scoped empty window.
+  let mode: "probe" | "older" | "legacy" =
+    canonicalChannel.test(channelId) &&
+    import.meta.env?.VITE_BUZZ_LEGACY_THREADS !== "1"
+      ? "probe"
+      : "legacy";
   let cursor: ThreadCursor | undefined;
   let pages = 0;
   let controller: AbortController | undefined;

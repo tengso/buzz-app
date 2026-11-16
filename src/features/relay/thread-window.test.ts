@@ -62,6 +62,7 @@ const cleanup: (() => void)[] = [];
 afterEach(() => {
   for (const dispose of cleanup.splice(0)) dispose();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 async function setup(
   answer: (
@@ -363,6 +364,13 @@ it("keeps ambiguous empty access-scoped responses as errors, not fallback or exh
     canLoadMore: false,
   });
   expect(h.requests).toHaveLength(2);
+});
+it("reads reply-less threads from a known pre-window relay with legacy reads", async () => {
+  vi.stubEnv("VITE_BUZZ_LEGACY_THREADS", "1");
+  const h = await setup((f) => (f.ids ? [root] : []));
+  await h.view.refresh();
+  expect(h.view.snapshot()).toMatchObject({ status: "ready", replies: [] });
+  expect(h.requests.flat().some((f) => f.thread_window)).toBe(false);
 });
 it.each([401, 403, 429, 500, 503])(
   "does not downgrade HTTP %s and can explicitly retry",
